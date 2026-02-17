@@ -1,64 +1,68 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useRef, useEffect } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { PerspectiveCamera } from '@react-three/drei'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
-import GeometricBackground from '@/components/3d/GeometricBackground'
-
-gsap.registerPlugin(ScrollTrigger)
 
 const skillCategories = [
   {
     title: 'Backend',
     icon: '⚙️',
     color: '#ff6b6b',
+    bg: 'rgba(255,107,107,0.07)',
+    border: 'rgba(255,107,107,0.18)',
     skills: [
-      { name: 'Java',             level: 80 },
-      { name: 'Spring Boot',      level: 78 },
-      { name: 'Spring Security',  level: 70 },
-      { name: 'Spring Data JPA',  level: 75 },
-      { name: 'Hibernate',        level: 72 },
-      { name: 'REST APIs',        level: 82 },
-      { name: 'Microservices',    level: 60 },
-      { name: 'Maven / Gradle',   level: 74 },
+      { name: 'Java',            level: 'Proficient'  },
+      { name: 'Spring Boot',     level: 'Proficient'  },
+      { name: 'REST APIs',       level: 'Proficient'  },
+      { name: 'Spring Data JPA', level: 'Comfortable' },
+      { name: 'Hibernate',       level: 'Comfortable' },
+      { name: 'Spring Security', level: 'Comfortable' },
+      { name: 'Maven / Gradle',  level: 'Comfortable' },
+      { name: 'Microservices',   level: 'Familiar'    },
     ],
   },
   {
     title: 'Frontend',
     icon: '🎨',
     color: '#4ecdc4',
+    bg: 'rgba(78,205,196,0.07)',
+    border: 'rgba(78,205,196,0.18)',
     skills: [
-      { name: 'React.js',          level: 72 },
-      { name: 'Next.js',           level: 68 },
-      { name: 'TypeScript',        level: 65 },
-      { name: 'Tailwind CSS',      level: 75 },
-      { name: 'HTML / CSS',        level: 82 },
-      { name: 'Axios / Fetch',     level: 78 },
-      { name: 'REST Integration',  level: 80 },
+      { name: 'HTML / CSS',       level: 'Proficient'  },
+      { name: 'React.js',         level: 'Comfortable' },
+      { name: 'Next.js',          level: 'Comfortable' },
+      { name: 'REST Integration', level: 'Comfortable' },
+      { name: 'Axios / Fetch',    level: 'Comfortable' },
+      { name: 'Tailwind CSS',     level: 'Comfortable' },
+      { name: 'TypeScript',       level: 'Familiar'    },
     ],
   },
   {
     title: 'Database & Cloud',
     icon: '🗄️',
     color: '#a855f7',
+    bg: 'rgba(168,85,247,0.07)',
+    border: 'rgba(168,85,247,0.18)',
     skills: [
-      { name: 'MySQL',        level: 78 },
-      { name: 'PostgreSQL',   level: 72 },
-      { name: 'MongoDB',      level: 65 },
-      { name: 'Redis',        level: 55 },
-      { name: 'Docker',       level: 68 },
-      { name: 'Kubernetes',   level: 50 },
-      { name: 'AWS',          level: 55 },
-      { name: 'Azure',        level: 48 },
+      { name: 'MySQL',      level: 'Proficient'  },
+      { name: 'PostgreSQL', level: 'Comfortable' },
+      { name: 'Docker',     level: 'Comfortable' },
+      { name: 'MongoDB',    level: 'Comfortable' },
+      { name: 'Redis',      level: 'Familiar'    },
+      { name: 'AWS',        level: 'Familiar'    },
+      { name: 'Azure',      level: 'Familiar'    },
+      { name: 'Kubernetes', level: 'Familiar'    },
     ],
   },
 ]
 
+const levelStyle: Record<string, { bg: string; dot: string }> = {
+  Proficient:  { bg: 'rgba(74,222,128,0.12)',  dot: '#4ade80' },
+  Comfortable: { bg: 'rgba(251,191,36,0.10)',  dot: '#fbbf24' },
+  Familiar:    { bg: 'rgba(148,163,184,0.09)', dot: '#94a3b8' },
+}
+
 const tools = [
-  { name: 'IntelliJ IDEA', icon: '🧠' },
+  { name: 'IntelliJ IDEA',  icon: '🧠' },
   { name: 'VS Code',        icon: '💻' },
   { name: 'GitHub',         icon: '🐙' },
   { name: 'Postman',        icon: '📮' },
@@ -68,103 +72,174 @@ const tools = [
   { name: 'Kafka',          icon: '📨' },
 ]
 
+const legend = [
+  { label: 'Proficient',  dot: '#4ade80', desc: 'Built real projects' },
+  { label: 'Comfortable', dot: '#fbbf24', desc: 'Used regularly'      },
+  { label: 'Familiar',    dot: '#94a3b8', desc: 'Still growing'       },
+]
+
 export default function Skills() {
-  const sectionRef = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    if (!sectionRef.current) return
-    gsap.from('.skill-cat', {
-      scrollTrigger: { trigger: sectionRef.current, start: 'top 70%' },
-      y: 50, opacity: 0, duration: 0.65, stagger: 0.12, ease: 'power3.out',
-    })
-  }, [])
-
   return (
-    <section id="skills" ref={sectionRef}
-      className="relative min-h-screen py-24 bg-gradient-to-b from-secondary to-primary overflow-hidden">
-
-      {/* 3D background — dpr=1, opacity low */}
-      <div className="absolute inset-0 pointer-events-none opacity-20">
-        <Canvas dpr={1} frameloop="always"
-          gl={{ antialias: false, powerPreference: 'high-performance', stencil: false, alpha: true }}>
-          <PerspectiveCamera makeDefault position={[0, 0, 10]} fov={65} />
-          <ambientLight intensity={1} />
-          <GeometricBackground />
-        </Canvas>
+    <section
+      id="skills"
+      className="relative min-h-screen py-24 overflow-hidden"
+      style={{ backgroundColor: '#0d0d0d' }}
+    >
+      {/* CSS blobs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-20 left-1/4 w-96 h-96 rounded-full blur-[140px]"
+          style={{ backgroundColor: 'rgba(255,107,107,0.05)' }} />
+        <div className="absolute bottom-20 right-1/4 w-96 h-96 rounded-full blur-[140px]"
+          style={{ backgroundColor: 'rgba(168,85,247,0.05)' }} />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6">
 
-        <motion.div className="text-center mb-16"
-          initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <p className="text-accent text-sm font-mono tracking-widest uppercase mb-4">Tech Stack</p>
-          <h2 className="text-4xl md:text-6xl font-heading font-bold">
-            Skills & <span className="gradient-text">Expertise</span>
+        {/* Header */}
+        <motion.div className="text-center mb-6"
+          initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }} transition={{ duration: 0.6 }}>
+          <p className="text-sm font-mono tracking-widest uppercase mb-3" style={{ color: '#ff6b6b' }}>
+            Tech Stack
+          </p>
+          <h2 className="font-heading font-bold mb-4"
+            style={{ fontSize: 'clamp(2.2rem, 5vw, 3.5rem)', color: '#ffffff' }}>
+            Skills &amp;{' '}
+            <span style={{
+              background: 'linear-gradient(135deg, #ff6b6b, #4ecdc4, #a855f7)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+            }}>Expertise</span>
           </h2>
-          <p className="text-white/40 mt-4 text-sm max-w-lg mx-auto">
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.88rem', maxWidth: 480, margin: '0 auto' }}>
             Focused on Java backend engineering with full-stack capabilities and cloud deployment.
           </p>
         </motion.div>
 
-        {/* Skill categories */}
+        {/* Legend */}
+        <motion.div className="flex flex-wrap items-center justify-center gap-5 mb-12"
+          initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+          transition={{ delay: 0.2 }}>
+          {legend.map((l) => (
+            <div key={l.label} className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: l.dot }} />
+              <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.78rem', fontFamily: 'monospace' }}>
+                {l.label}
+              </span>
+              <span className="hidden sm:inline" style={{ color: 'rgba(255,255,255,0.22)', fontSize: '0.72rem' }}>
+                — {l.desc}
+              </span>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* Skill cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
           {skillCategories.map((cat, ci) => (
-            <motion.div key={cat.title}
-              className="skill-cat glass rounded-2xl p-7"
-              whileHover={{ y: -5, transition: { duration: 0.2 } }}>
-              <div className="flex items-center gap-3 mb-5">
-                <span className="text-2xl">{cat.icon}</span>
-                <h3 className="text-lg font-bold" style={{ color: cat.color }}>{cat.title}</h3>
+            <motion.div
+              key={cat.title}
+              className="rounded-2xl p-7"
+              style={{ backgroundColor: cat.bg, border: `1px solid ${cat.border}`, backdropFilter: 'blur(12px)' }}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.55, delay: ci * 0.1 }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            >
+              {/* Card header */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
+                  style={{ backgroundColor: `${cat.color}18`, border: `1px solid ${cat.color}28` }}>
+                  {cat.icon}
+                </div>
+                <h3 className="text-base font-bold" style={{ color: cat.color }}>{cat.title}</h3>
               </div>
-              <div className="space-y-3.5">
-                {cat.skills.map((skill, si) => (
-                  <div key={skill.name}>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-white/80 text-xs font-medium">{skill.name}</span>
-                      <span className="text-white/35 text-xs">{skill.level}%</span>
+
+              {/* Skill tags */}
+              <div className="flex flex-wrap gap-2">
+                {cat.skills.map((skill, si) => {
+                  const ls = levelStyle[skill.level]
+                  return (
+                    <motion.div
+                      key={skill.name}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+                      style={{ backgroundColor: ls.bg, border: `1px solid ${ls.dot}30` }}
+                      initial={{ opacity: 0, scale: 0.85 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: ci * 0.08 + si * 0.04 }}
+                      whileHover={{ scale: 1.06 }}
+                    >
+                      <div className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: ls.dot }} />
+                      <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.88)' }}>
+                        {skill.name}
+                      </span>
+                    </motion.div>
+                  )
+                })}
+              </div>
+
+              {/* Summary row */}
+              <div className="mt-5 pt-4 flex gap-4 flex-wrap"
+                style={{ borderTop: `1px solid ${cat.color}12` }}>
+                {(['Proficient', 'Comfortable', 'Familiar'] as const).map(lvl => {
+                  const count = cat.skills.filter(s => s.level === lvl).length
+                  if (!count) return null
+                  const ls = levelStyle[lvl]
+                  return (
+                    <div key={lvl} className="flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: ls.dot }} />
+                      <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.68rem', fontFamily: 'monospace' }}>
+                        {count} {lvl}
+                      </span>
                     </div>
-                    <div className="h-1 bg-white/8 rounded-full overflow-hidden">
-                      <motion.div className="h-full rounded-full"
-                        style={{ backgroundColor: cat.color }}
-                        initial={{ width: 0 }}
-                        whileInView={{ width: `${skill.level}%` }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.9, delay: ci * 0.1 + si * 0.06, ease: 'easeOut' }} />
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </motion.div>
           ))}
         </div>
 
         {/* Tools */}
-        <motion.div className="text-center"
+        <motion.div className="text-center mb-12"
           initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
-          <p className="text-white/40 text-xs font-mono uppercase tracking-widest mb-5">Daily Tools</p>
+          <p className="text-xs font-mono uppercase tracking-widest mb-5"
+            style={{ color: 'rgba(255,255,255,0.3)' }}>Daily Tools</p>
           <div className="flex flex-wrap justify-center gap-3">
             {tools.map((tool, i) => (
               <motion.div key={tool.name}
-                className="glass px-4 py-2.5 rounded-full flex items-center gap-2 cursor-hover"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-full"
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(8px)',
+                }}
                 initial={{ opacity: 0, scale: 0.85 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05 }}
-                whileHover={{ scale: 1.08 }}>
-                <span>{tool.icon}</span>
-                <span className="text-white/70 text-sm font-medium">{tool.name}</span>
+                whileHover={{ scale: 1.07 }}>
+                <span className="text-base">{tool.icon}</span>
+                <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.75)' }}>{tool.name}</span>
               </motion.div>
             ))}
           </div>
         </motion.div>
 
         {/* Fresher note */}
-        <motion.div className="mt-12 text-center glass rounded-2xl p-6 max-w-2xl mx-auto"
+        <motion.div className="max-w-2xl mx-auto rounded-2xl p-6 text-center"
+          style={{
+            backgroundColor: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            backdropFilter: 'blur(12px)',
+          }}
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <p className="text-white/60 text-sm leading-relaxed">
-            🎓 <span className="text-white font-semibold">Currently in 3rd year BCA</span> at Arts, Commerce & Science College, Palus
-            (Shivaji University, Kolhapur). Actively learning advanced Spring Boot microservices,
-            cloud deployment and system design to be production-ready.
+          <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>
+            🎓{' '}
+            <span style={{ color: '#ffffff', fontWeight: 600 }}>Currently in 3rd year BCA</span>
+            {' '}at Arts, Commerce &amp; Science College, Palus (Shivaji University, Kolhapur).
+            Actively learning advanced Spring Boot microservices, cloud deployment and system design
+            to be production-ready.
           </p>
         </motion.div>
       </div>

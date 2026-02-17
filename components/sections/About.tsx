@@ -3,51 +3,79 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
 import { motion } from 'framer-motion'
-import { useRef, useEffect } from 'react'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
+import { useRef } from 'react'
 import InteractiveModelViewer from '@/components/3d/InteractiveModelViewer'
 
-gsap.registerPlugin(ScrollTrigger)
-
-const skills = [
-  { name: 'Java & Spring Boot', level: 78 },
-  { name: 'REST API Design',    level: 80 },
-  { name: 'React & Next.js',    level: 72 },
-  { name: 'Docker & Cloud',     level: 65 },
-  { name: 'MySQL & PostgreSQL', level: 75 },
+const badges = [
+  { label: 'BCA 3rd Year',       icon: '🎓' },
+  { label: 'Shivaji University', icon: '🏛️' },
+  { label: 'Palus, Sangli',      icon: '📍' },
+  { label: 'Fresher',            icon: '🚀' },
 ]
 
-const badges = [
-  { label: 'BCA 3rd Year',        icon: '🎓' },
-  { label: 'Shivaji University',  icon: '🏛️' },
-  { label: 'Palus, Sangli',       icon: '📍' },
-  { label: 'Fresher',             icon: '🚀' },
+// ── Strengths — no fake numbers, honest labels ──────────────────
+const strengths = [
+  {
+    icon: '☕',
+    title: 'Java & Spring Boot',
+    tag: 'Core Strength',
+    tagColor: '#4ade80',
+    tagBg: 'rgba(74,222,128,0.12)',
+    desc: 'Deep understanding of Spring ecosystem — Boot, Security, Data JPA, Hibernate. Built real APIs with JWT auth, role-based access, and complex DB relationships.',
+  },
+  {
+    icon: '🔐',
+    title: 'Spring Security & JPA',
+    tag: 'Core Strength',
+    tagColor: '#4ade80',
+    tagBg: 'rgba(74,222,128,0.12)',
+    desc: 'Implemented JWT-based auth, role-based authorization, and session management. Proficient with Hibernate ORM, entity mapping, and database queries via Spring Data JPA.',
+  },
+  {
+    icon: '🌐',
+    title: 'React & Next.js',
+    tag: 'Comfortable',
+    tagColor: '#fbbf24',
+    tagBg: 'rgba(251,191,36,0.10)',
+    desc: 'Building modern UIs with React and Next.js — REST API integration, component design, Tailwind CSS styling and responsive layouts.',
+  },
+  {
+    icon: '🐳',
+    title: 'Docker & Cloud',
+    tag: 'Growing',
+    tagColor: '#94a3b8',
+    tagBg: 'rgba(148,163,184,0.09)',
+    desc: 'Containerising Spring Boot apps with Docker. Learning Kubernetes, AWS, and cloud deployment as part of the CrowdSpark-X microservices project.',
+  },
 ]
 
 export default function About() {
-  const sectionRef = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    if (!sectionRef.current) return
-    gsap.from('.skill-bar', {
-      scrollTrigger: { trigger: sectionRef.current, start: 'top 70%' },
-      width: 0, duration: 1.1, stagger: 0.12, ease: 'power3.out',
-    })
-  }, [])
-
   return (
-    <section id="about" ref={sectionRef}
-      className="relative min-h-screen py-24 bg-gradient-to-b from-primary to-secondary overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+    <section
+      id="about"
+      className="relative min-h-screen py-24 overflow-hidden"
+      style={{ backgroundColor: '#0f0f0f' }}
+    >
+      {/* CSS blobs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/4 left-0 w-96 h-96 rounded-full blur-[150px]"
+          style={{ backgroundColor: 'rgba(78,205,196,0.05)' }} />
+        <div className="absolute bottom-1/4 right-0 w-96 h-96 rounded-full blur-[150px]"
+          style={{ backgroundColor: 'rgba(255,107,107,0.05)' }} />
+      </div>
 
-          {/* 3D laptop model */}
-          <motion.div className="h-[460px] relative rounded-2xl overflow-hidden glass"
+      <div className="relative z-10 max-w-7xl mx-auto px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+
+          {/* ── Left: 3D model ── */}
+          <motion.div
+            className="h-[480px] relative rounded-2xl overflow-hidden"
+            style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7 }}>
+            transition={{ duration: 0.7 }}
+          >
             <Canvas
               dpr={typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 1.5) : 1}
               frameloop="always"
@@ -58,77 +86,125 @@ export default function About() {
               <InteractiveModelViewer scale={1.1} />
             </Canvas>
 
+            {/* Overlay labels */}
             <div className="absolute bottom-4 left-4 right-4 flex justify-between">
-              <div className="glass rounded-xl px-4 py-2.5">
-                <div className="text-lg font-bold gradient-text">BCA 3rd Year</div>
-                <div className="text-xs text-white/50">Arts, Commerce & Science College</div>
+              <div className="rounded-xl px-4 py-2.5"
+                style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className="text-base font-bold" style={{
+                  background: 'linear-gradient(135deg, #ff6b6b, #4ecdc4)',
+                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+                }}>BCA 3rd Year</div>
+                <div className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                  Arts, Commerce &amp; Science College
+                </div>
               </div>
-              <div className="glass rounded-xl px-4 py-2.5 text-right">
-                <div className="text-lg font-bold gradient-text">2 Projects</div>
-                <div className="text-xs text-white/50">Shipped & In Progress</div>
+              <div className="rounded-xl px-4 py-2.5 text-right"
+                style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className="text-base font-bold" style={{
+                  background: 'linear-gradient(135deg, #ff6b6b, #4ecdc4)',
+                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+                }}>2 Projects</div>
+                <div className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>Shipped &amp; In Progress</div>
               </div>
             </div>
-            <div className="absolute top-4 right-4 glass rounded-full px-3 py-1">
-              <span className="text-white/40 text-xs">Drag to rotate</span>
+            <div className="absolute top-4 right-4 rounded-full px-3 py-1"
+              style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>Drag to rotate</span>
             </div>
           </motion.div>
 
-          {/* Text */}
+          {/* ── Right: text + strengths ── */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7 }}>
+            transition={{ duration: 0.7 }}
+          >
+            <p className="text-sm font-mono tracking-widest uppercase mb-4" style={{ color: '#4ecdc4' }}>
+              Who I am
+            </p>
 
-            <p className="text-accent text-sm font-mono tracking-widest uppercase mb-4">Who I am</p>
-
-            <h2 className="text-4xl md:text-5xl font-heading font-bold mb-6">
-              About <span className="gradient-text">Me</span>
+            <h2 className="font-heading font-bold mb-6"
+              style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', color: '#ffffff' }}>
+              About{' '}
+              <span style={{
+                background: 'linear-gradient(135deg, #ff6b6b, #4ecdc4)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+              }}>Me</span>
             </h2>
 
-            <p className="text-white/60 mb-4 leading-relaxed">
-              Hi, I'm <span className="text-white font-semibold">Ajay Patil</span> — a passionate
-              Full Stack Developer and BCA student from Palus, Sangli, Maharashtra. I specialise in
-              building scalable backend systems with <span className="text-accent">Java & Spring Boot</span> and
-              crafting modern frontends with <span className="text-accent-blue">React & Next.js</span>.
+            <p className="leading-relaxed mb-4" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.95rem' }}>
+              Hi, I'm{' '}
+              <span style={{ color: '#ffffff', fontWeight: 600 }}>Ajay Patil</span>
+              {' '}— a Java &amp; Spring Boot developer and BCA student from Palus, Sangli, Maharashtra.
+              My strength is backend engineering — building secure, scalable REST APIs with
+              Spring Boot, Spring Security, JPA and Hibernate.
             </p>
-            <p className="text-white/60 mb-8 leading-relaxed">
-              Even as a fresher, I've built production-grade projects like CrowdSpark-X — a
-              full-stack crowdfunding platform — and I'm currently rebuilding it with microservices,
-              Docker, Kafka and cloud deployment. I learn fast and build things that actually work.
+            <p className="leading-relaxed mb-8" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.95rem' }}>
+              I've built CrowdSpark-X — a full-stack crowdfunding platform — and I'm currently
+              rebuilding it as a microservices architecture with Spring Boot, Kafka, Docker and
+              Next.js. I'm not just studying — I'm shipping real code.
             </p>
 
             {/* Info badges */}
-            <div className="flex flex-wrap gap-3 mb-8">
+            <div className="flex flex-wrap gap-2.5 mb-10">
               {badges.map((b) => (
-                <div key={b.label} className="glass px-4 py-2 rounded-full flex items-center gap-2">
+                <div key={b.label}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full"
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    backdropFilter: 'blur(8px)',
+                  }}>
                   <span>{b.icon}</span>
-                  <span className="text-white/70 text-sm">{b.label}</span>
+                  <span className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>{b.label}</span>
                 </div>
               ))}
             </div>
 
-            {/* Skill bars */}
-            <div className="space-y-4">
-              {skills.map((skill) => (
-                <div key={skill.name}>
-                  <div className="flex justify-between mb-1.5">
-                    <span className="text-white text-sm font-medium">{skill.name}</span>
-                    <span className="text-accent text-sm">{skill.level}%</span>
+            {/* Strength cards — no percentages */}
+            <div className="space-y-3 mb-10">
+              {strengths.map((s, i) => (
+                <motion.div
+                  key={s.title}
+                  className="rounded-xl p-4 flex gap-4"
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                    backdropFilter: 'blur(8px)',
+                  }}
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  whileHover={{ borderColor: 'rgba(255,255,255,0.15)', transition: { duration: 0.2 } }}
+                >
+                  <div className="text-2xl flex-shrink-0 mt-0.5">{s.icon}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="text-sm font-bold" style={{ color: '#ffffff' }}>{s.title}</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full font-mono"
+                        style={{ backgroundColor: s.tagBg, color: s.tagColor }}>
+                        {s.tag}
+                      </span>
+                    </div>
+                    <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.48)' }}>
+                      {s.desc}
+                    </p>
                   </div>
-                  <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                    <div className="skill-bar h-full bg-gradient-to-r from-accent via-accent-blue to-accent-purple rounded-full"
-                      style={{ width: `${skill.level}%` }} />
-                  </div>
-                </div>
+                </motion.div>
               ))}
             </div>
 
+            {/* CTA */}
             <motion.a
               href="mailto:aj9411979585@gmail.com"
-              className="mt-10 inline-block px-7 py-3.5 bg-accent text-white rounded-full font-semibold hover:bg-accent/80 transition-colors cursor-hover"
-              whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-              Hire Me
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-bold text-white text-sm cursor-hover"
+              style={{ background: 'linear-gradient(135deg, #ff6b6b, #a855f7)', boxShadow: '0 0 24px rgba(255,107,107,0.3)' }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              Hire Me →
             </motion.a>
           </motion.div>
         </div>

@@ -12,17 +12,41 @@ export default function SmoothScrollProvider({ children }: { children: React.Rea
 
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.0,          // slightly faster than 1.2 — feels snappier
+      duration: 1.0,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothTouch: false,     // IMPORTANT: disable on touch — huge mobile win
       touchMultiplier: 1.5,
+      infinite: false,
     })
     lenisRef.current = lenis
 
-    // Wire Lenis into ScrollTrigger
-    lenis.on('scroll', ScrollTrigger.update)
+    // FIX 2: Tell ScrollTrigger to use Lenis's scroll position, not window.scrollY
+    // Without this, ScrollTrigger reads the wrong position during smooth scroll
+    // and animations trigger too early or too late
+    lenis.on('scroll', ({ scroll }: { scroll: number }) => {
+      ScrollTrigger.update()
+    })
 
-    // Use RAF instead of gsap.ticker to avoid double-tick issue
+    // FIX 3: Sync Lenis scroll position into ScrollTrigger's proxy
+    // so gsap.to(window, { scrollTo }) works correctly with Lenis active
+    ScrollTrigger.scrollerProxy(document.documentElement, {
+      scrollTop(value) {
+        if (arguments.length && value !== undefined) {
+          lenisRef.current?.scrollTo(value, { immediate: true })
+        }
+        return lenisRef.current?.scroll ?? window.scrollY
+      },
+      getBoundingClientRect() {
+        return {
+          top: 0, left: 0,
+          width: window.innerWidth,
+          height: window.innerHeight,
+        }
+      },
+    })
+
+    ScrollTrigger.defaults({ scroller: document.documentElement })
+
+    // RAF loop — correct approach (not gsap.ticker which double-ticks)
     let rafId: number
     function raf(time: number) {
       lenis.raf(time)
@@ -32,6 +56,8 @@ export default function SmoothScrollProvider({ children }: { children: React.Rea
 
     return () => {
       cancelAnimationFrame(rafId)
+      ScrollTrigger.scrollerProxy(document.documentElement, undefined as any)
+      ScrollTrigger.refresh()
       lenis.destroy()
     }
   }, [])
