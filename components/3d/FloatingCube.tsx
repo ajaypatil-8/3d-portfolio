@@ -2,7 +2,6 @@
 
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { RoundedBox } from '@react-three/drei'
 import * as THREE from 'three'
 
 interface FloatingCubeProps {
@@ -11,36 +10,25 @@ interface FloatingCubeProps {
   speed?: number
 }
 
-export default function FloatingCube({
-  position,
-  color,
-  speed = 1,
-}: FloatingCubeProps) {
+export default function FloatingCube({ position, color, speed = 1 }: FloatingCubeProps) {
   const meshRef = useRef<THREE.Mesh>(null)
+  const tick = useRef(0)
 
   useFrame((state) => {
+    tick.current++
+    if (tick.current % 2 !== 0) return
     if (meshRef.current) {
-      meshRef.current.rotation.x = state.clock.getElapsedTime() * 0.3 * speed
-      meshRef.current.rotation.y = state.clock.getElapsedTime() * 0.5 * speed
-      meshRef.current.position.y =
-        position[1] + Math.sin(state.clock.getElapsedTime() * speed) * 0.2
+      meshRef.current.rotation.x = state.clock.getElapsedTime() * 0.25 * speed
+      meshRef.current.rotation.y = state.clock.getElapsedTime() * 0.35 * speed
+      meshRef.current.position.y = position[1] + Math.sin(state.clock.getElapsedTime() * speed * 0.7) * 0.15
     }
   })
 
   return (
-    <RoundedBox
-      ref={meshRef}
-      args={[0.5, 0.5, 0.5]}
-      radius={0.05}
-      smoothness={4}
-      position={position}
-    >
-      <meshStandardMaterial
-        color={color}
-        roughness={0.2}
-        metalness={0.8}
-        envMapIntensity={1}
-      />
-    </RoundedBox>
+    // Plain box instead of RoundedBox — much lighter
+    <mesh ref={meshRef} position={position}>
+      <boxGeometry args={[0.5, 0.5, 0.5]} />
+      <meshStandardMaterial color={color} roughness={0.3} metalness={0.7} />
+    </mesh>
   )
 }

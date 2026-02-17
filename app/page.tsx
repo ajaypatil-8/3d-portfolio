@@ -1,30 +1,33 @@
 'use client'
 
-import Hero from '@/components/sections/Hero'
-import About from '@/components/sections/About'
-import Projects from '@/components/sections/Projects'
-import Skills from '@/components/sections/Skills'
-import Experience from '@/components/sections/Experience'
-import Contact from '@/components/sections/Contact'
+import dynamic from 'next/dynamic'
+import { useState, useEffect } from 'react'
+import LoadingScreen from '@/components/ui/LoadingScreen'
 import Navigation from '@/components/ui/Navigation'
 import Footer from '@/components/ui/Footer'
-import LoadingScreen from '@/components/ui/LoadingScreen'
-import { useState, useEffect } from 'react'
+
+// Lazy-load every heavy section so they don't all parse+render at once
+const Hero       = dynamic(() => import('@/components/sections/Hero'),       { ssr: false })
+const About      = dynamic(() => import('@/components/sections/About'),      { ssr: false })
+const Projects   = dynamic(() => import('@/components/sections/Projects'),   { ssr: false })
+const Skills     = dynamic(() => import('@/components/sections/Skills'),     { ssr: false })
+const Experience = dynamic(() => import('@/components/sections/Experience'), { ssr: false })
+const Contact    = dynamic(() => import('@/components/sections/Contact'),    { ssr: false })
+const CustomCursor = dynamic(() => import('@/components/ui/CustomCursor'),   { ssr: false })
 
 export default function Home() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 3000)
-
-    return () => clearTimeout(timer)
+    // 2.4s matches the new faster loading screen
+    const t = setTimeout(() => setLoading(false), 2400)
+    return () => clearTimeout(t)
   }, [])
 
   return (
     <>
       {loading && <LoadingScreen />}
+      <CustomCursor />
       <main className="relative">
         <Navigation />
         <Hero />

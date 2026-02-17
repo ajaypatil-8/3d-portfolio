@@ -3,55 +3,69 @@
 import { motion } from 'framer-motion'
 import { useRef, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, PerspectiveCamera, Float, Text3D, Center } from '@react-three/drei'
+import { PerspectiveCamera } from '@react-three/drei'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
-import AnimatedTorus from '@/components/3d/AnimatedTorus'
+import GeometricBackground from '@/components/3d/GeometricBackground'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const skillCategories = [
   {
-    title: 'Frontend',
-    skills: [
-      { name: 'React', level: 95 },
-      { name: 'Next.js', level: 90 },
-      { name: 'TypeScript', level: 88 },
-      { name: 'Tailwind CSS', level: 92 },
-    ],
-    color: '#ff6b6b',
-  },
-  {
-    title: '3D & Animation',
-    skills: [
-      { name: 'Three.js', level: 90 },
-      { name: 'Framer Motion', level: 88 },
-      { name: 'GSAP', level: 85 },
-      { name: 'Blender', level: 75 },
-    ],
-    color: '#4ecdc4',
-  },
-  {
     title: 'Backend',
+    icon: '⚙️',
+    color: '#ff6b6b',
     skills: [
-      { name: 'Node.js', level: 85 },
-      { name: 'Express', level: 82 },
-      { name: 'MongoDB', level: 80 },
-      { name: 'PostgreSQL', level: 78 },
+      { name: 'Java',             level: 80 },
+      { name: 'Spring Boot',      level: 78 },
+      { name: 'Spring Security',  level: 70 },
+      { name: 'Spring Data JPA',  level: 75 },
+      { name: 'Hibernate',        level: 72 },
+      { name: 'REST APIs',        level: 82 },
+      { name: 'Microservices',    level: 60 },
+      { name: 'Maven / Gradle',   level: 74 },
     ],
+  },
+  {
+    title: 'Frontend',
+    icon: '🎨',
+    color: '#4ecdc4',
+    skills: [
+      { name: 'React.js',          level: 72 },
+      { name: 'Next.js',           level: 68 },
+      { name: 'TypeScript',        level: 65 },
+      { name: 'Tailwind CSS',      level: 75 },
+      { name: 'HTML / CSS',        level: 82 },
+      { name: 'Axios / Fetch',     level: 78 },
+      { name: 'REST Integration',  level: 80 },
+    ],
+  },
+  {
+    title: 'Database & Cloud',
+    icon: '🗄️',
     color: '#a855f7',
+    skills: [
+      { name: 'MySQL',        level: 78 },
+      { name: 'PostgreSQL',   level: 72 },
+      { name: 'MongoDB',      level: 65 },
+      { name: 'Redis',        level: 55 },
+      { name: 'Docker',       level: 68 },
+      { name: 'Kubernetes',   level: 50 },
+      { name: 'AWS',          level: 55 },
+      { name: 'Azure',        level: 48 },
+    ],
   },
 ]
 
 const tools = [
-  'Figma',
-  'VS Code',
-  'Git',
-  'Docker',
-  'Webpack',
-  'Vite',
-  'Photoshop',
-  'After Effects',
+  { name: 'IntelliJ IDEA', icon: '🧠' },
+  { name: 'VS Code',        icon: '💻' },
+  { name: 'GitHub',         icon: '🐙' },
+  { name: 'Postman',        icon: '📮' },
+  { name: 'Docker Desktop', icon: '🐳' },
+  { name: 'XAMPP',          icon: '🛠️' },
+  { name: 'Cloudinary',     icon: '☁️' },
+  { name: 'Kafka',          icon: '📨' },
 ]
 
 export default function Skills() {
@@ -59,175 +73,99 @@ export default function Skills() {
 
   useEffect(() => {
     if (!sectionRef.current) return
-
-    gsap.from('.skill-category', {
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: 'top center',
-      },
-      y: 100,
-      opacity: 0,
-      duration: 0.8,
-      stagger: 0.2,
-      ease: 'power3.out',
-    })
-
-    gsap.from('.tool-badge', {
-      scrollTrigger: {
-        trigger: '.tools-container',
-        start: 'top center',
-      },
-      scale: 0,
-      opacity: 0,
-      duration: 0.5,
-      stagger: 0.1,
-      ease: 'back.out(1.7)',
+    gsap.from('.skill-cat', {
+      scrollTrigger: { trigger: sectionRef.current, start: 'top 70%' },
+      y: 50, opacity: 0, duration: 0.65, stagger: 0.12, ease: 'power3.out',
     })
   }, [])
 
   return (
-    <section
-      id="skills"
-      ref={sectionRef}
-      className="relative min-h-screen py-20 bg-gradient-to-b from-secondary to-primary overflow-hidden"
-    >
-      {/* 3D Background */}
-      <div className="absolute inset-0 opacity-30">
-        <Canvas>
-          <PerspectiveCamera makeDefault position={[0, 0, 10]} />
-          <OrbitControls enableZoom={false} enablePan={false} autoRotate />
+    <section id="skills" ref={sectionRef}
+      className="relative min-h-screen py-24 bg-gradient-to-b from-secondary to-primary overflow-hidden">
 
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[10, 10, 5]} intensity={1} />
-
-          <Float speed={1.5} rotationIntensity={1} floatIntensity={0.5}>
-            <AnimatedTorus />
-          </Float>
+      {/* 3D background — dpr=1, opacity low */}
+      <div className="absolute inset-0 pointer-events-none opacity-20">
+        <Canvas dpr={1} frameloop="always"
+          gl={{ antialias: false, powerPreference: 'high-performance', stencil: false, alpha: true }}>
+          <PerspectiveCamera makeDefault position={[0, 0, 10]} fov={65} />
+          <ambientLight intensity={1} />
+          <GeometricBackground />
         </Canvas>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.h2
-          className="text-4xl md:text-6xl font-heading font-bold text-center mb-16"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          Skills & <span className="gradient-text">Expertise</span>
-        </motion.h2>
+      <div className="relative z-10 max-w-7xl mx-auto px-6">
 
-        {/* Skill Categories */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          {skillCategories.map((category, categoryIndex) => (
-            <motion.div
-              key={category.title}
-              className="skill-category glass rounded-2xl p-8 hover:bg-white/10 transition-colors cursor-hover"
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: categoryIndex * 0.2 }}
-              whileHover={{ y: -10 }}
-            >
-              <div
-                className="w-16 h-16 rounded-full mb-6 flex items-center justify-center"
-                style={{ backgroundColor: `${category.color}20` }}
-              >
-                <div
-                  className="w-8 h-8 rounded-full"
-                  style={{ backgroundColor: category.color }}
-                />
+        <motion.div className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <p className="text-accent text-sm font-mono tracking-widest uppercase mb-4">Tech Stack</p>
+          <h2 className="text-4xl md:text-6xl font-heading font-bold">
+            Skills & <span className="gradient-text">Expertise</span>
+          </h2>
+          <p className="text-white/40 mt-4 text-sm max-w-lg mx-auto">
+            Focused on Java backend engineering with full-stack capabilities and cloud deployment.
+          </p>
+        </motion.div>
+
+        {/* Skill categories */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
+          {skillCategories.map((cat, ci) => (
+            <motion.div key={cat.title}
+              className="skill-cat glass rounded-2xl p-7"
+              whileHover={{ y: -5, transition: { duration: 0.2 } }}>
+              <div className="flex items-center gap-3 mb-5">
+                <span className="text-2xl">{cat.icon}</span>
+                <h3 className="text-lg font-bold" style={{ color: cat.color }}>{cat.title}</h3>
               </div>
-
-              <h3 className="text-2xl font-bold mb-6" style={{ color: category.color }}>
-                {category.title}
-              </h3>
-
-              <div className="space-y-4">
-                {category.skills.map((skill, skillIndex) => (
-                  <motion.div
-                    key={skill.name}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: categoryIndex * 0.2 + skillIndex * 0.1 }}
-                  >
-                    <div className="flex justify-between mb-2">
-                      <span className="text-white font-medium">{skill.name}</span>
-                      <span className="text-white/50">{skill.level}%</span>
+              <div className="space-y-3.5">
+                {cat.skills.map((skill, si) => (
+                  <div key={skill.name}>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-white/80 text-xs font-medium">{skill.name}</span>
+                      <span className="text-white/35 text-xs">{skill.level}%</span>
                     </div>
-                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full rounded-full"
-                        style={{ backgroundColor: category.color }}
+                    <div className="h-1 bg-white/8 rounded-full overflow-hidden">
+                      <motion.div className="h-full rounded-full"
+                        style={{ backgroundColor: cat.color }}
                         initial={{ width: 0 }}
                         whileInView={{ width: `${skill.level}%` }}
                         viewport={{ once: true }}
-                        transition={{ duration: 1, delay: categoryIndex * 0.2 + skillIndex * 0.1 }}
-                      />
+                        transition={{ duration: 0.9, delay: ci * 0.1 + si * 0.06, ease: 'easeOut' }} />
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             </motion.div>
           ))}
         </div>
 
-        {/* Tools & Technologies */}
-        <motion.div
-          className="tools-container"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
-          <h3 className="text-3xl font-bold text-center mb-8">
-            Tools & <span className="gradient-text">Technologies</span>
-          </h3>
-
-          <div className="flex flex-wrap justify-center gap-4">
-            {tools.map((tool, index) => (
-              <motion.div
-                key={tool}
-                className="tool-badge glass px-6 py-3 rounded-full cursor-hover"
-                whileHover={{
-                  scale: 1.1,
-                  backgroundColor: 'rgba(255, 107, 107, 0.2)',
-                }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <span className="text-white font-medium">{tool}</span>
+        {/* Tools */}
+        <motion.div className="text-center"
+          initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
+          <p className="text-white/40 text-xs font-mono uppercase tracking-widest mb-5">Daily Tools</p>
+          <div className="flex flex-wrap justify-center gap-3">
+            {tools.map((tool, i) => (
+              <motion.div key={tool.name}
+                className="glass px-4 py-2.5 rounded-full flex items-center gap-2 cursor-hover"
+                initial={{ opacity: 0, scale: 0.85 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+                whileHover={{ scale: 1.08 }}>
+                <span>{tool.icon}</span>
+                <span className="text-white/70 text-sm font-medium">{tool.name}</span>
               </motion.div>
             ))}
           </div>
         </motion.div>
 
-        {/* Certifications */}
-        <motion.div
-          className="mt-16 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <div className="inline-flex items-center gap-4 glass rounded-full px-8 py-4">
-            <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                />
-              </svg>
-            </div>
-            <div className="text-left">
-              <div className="text-white font-bold">Certified Developer</div>
-              <div className="text-white/50 text-sm">Multiple certifications in web development</div>
-            </div>
-          </div>
+        {/* Fresher note */}
+        <motion.div className="mt-12 text-center glass rounded-2xl p-6 max-w-2xl mx-auto"
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <p className="text-white/60 text-sm leading-relaxed">
+            🎓 <span className="text-white font-semibold">Currently in 3rd year BCA</span> at Arts, Commerce & Science College, Palus
+            (Shivaji University, Kolhapur). Actively learning advanced Spring Boot microservices,
+            cloud deployment and system design to be production-ready.
+          </p>
         </motion.div>
       </div>
     </section>

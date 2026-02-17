@@ -4,50 +4,62 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-export default function Particles({ count = 5000 }) {
-  const points = useRef<THREE.Points>(null)
+function makeRing(count: number, innerR: number, outerR: number): Float32Array {
+  const pos = new Float32Array(count * 3)
+  for (let i = 0; i < count; i++) {
+    const angle  = Math.random() * Math.PI * 2
+    const radius = innerR + Math.random() * (outerR - innerR)
+    const spread = (Math.random() - 0.5) * 0.8
+    pos[i * 3]     = Math.cos(angle) * radius
+    pos[i * 3 + 1] = spread
+    pos[i * 3 + 2] = Math.sin(angle) * radius
+  }
+  return pos
+}
 
-  const particlesPosition = useMemo(() => {
-    const positions = new Float32Array(count * 3)
+function makeDust(count: number, spread: number): Float32Array {
+  const pos = new Float32Array(count * 3)
+  for (let i = 0; i < count; i++) {
+    pos[i * 3]     = (Math.random() - 0.5) * spread
+    pos[i * 3 + 1] = (Math.random() - 0.5) * spread
+    pos[i * 3 + 2] = (Math.random() - 0.5) * spread
+  }
+  return pos
+}
 
-    for (let i = 0; i < count; i++) {
-      const distance = Math.sqrt(Math.random()) * 5
-      const theta = THREE.MathUtils.randFloatSpread(360)
-      const phi = THREE.MathUtils.randFloatSpread(360)
+export default function Particles() {
+  const ringRef = useRef<THREE.Points>(null)
+  const dustRef = useRef<THREE.Points>(null)
 
-      positions[i * 3] = distance * Math.sin(theta) * Math.cos(phi)
-      positions[i * 3 + 1] = distance * Math.sin(theta) * Math.sin(phi)
-      positions[i * 3 + 2] = distance * Math.cos(theta)
+  const ringPos = useMemo(() => makeRing(200, 1.8, 2.8), [])
+  const dustPos = useMemo(() => makeDust(150, 6), [])
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    if (ringRef.current) {
+      ringRef.current.rotation.y = t * 0.12
+      ringRef.current.rotation.x = 0.35
     }
-
-    return positions
-  }, [count])
-
-  useFrame((state) => {
-    if (points.current) {
-      points.current.rotation.x = state.clock.getElapsedTime() * 0.05
-      points.current.rotation.y = state.clock.getElapsedTime() * 0.075
+    if (dustRef.current) {
+      dustRef.current.rotation.y = -t * 0.05
     }
   })
 
   return (
-    <points ref={points}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          count={particlesPosition.length / 3}
-          array={particlesPosition}
-          itemSize={3}
-        />
-      </bufferGeometry>
-      <pointsMaterial
-        size={0.015}
-        color="#ffffff"
-        sizeAttenuation
-        transparent
-        opacity={0.8}
-        blending={THREE.AdditiveBlending}
-      />
-    </points>
+    <group>
+      <points ref={ringRef} frustumCulled={false}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" array={ringPos} count={ringPos.length / 3} itemSize={3} />
+        </bufferGeometry>
+        <pointsMaterial size={0.035} color="#a78bfa" sizeAttenuation transparent opacity={0.85} depthWrite={false} />
+      </points>
+
+      <points ref={dustRef} frustumCulled={false}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" array={dustPos} count={dustPos.length / 3} itemSize={3} />
+        </bufferGeometry>
+        <pointsMaterial size={0.022} color="#ffffff" sizeAttenuation transparent opacity={0.3} depthWrite={false} />
+      </points>
+    </group>
   )
 }

@@ -4,76 +4,68 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-export default function GeometricBackground({ count = 100 }) {
+const COUNT   = 60
+const PALETTE = ['#ff6b6b', '#4ecdc4', '#a855f7', '#ffd93d', '#60a5fa']
+
+export default function GeometricBackground() {
   const meshRef = useRef<THREE.InstancedMesh>(null)
+  const dummy   = useMemo(() => new THREE.Object3D(), [])
 
-  const particles = useMemo(() => {
-    const temp = []
-    for (let i = 0; i < count; i++) {
-      const t = Math.random() * 100
-      const factor = 20 + Math.random() * 100
-      const speed = 0.01 + Math.random() / 200
-      const xFactor = -50 + Math.random() * 100
-      const yFactor = -50 + Math.random() * 100
-      const zFactor = -50 + Math.random() * 100
-      temp.push({ t, factor, speed, xFactor, yFactor, zFactor, mx: 0, my: 0 })
+  const data = useMemo(() => {
+    const arr = []
+    for (let i = 0; i < COUNT; i++) {
+      arr.push({
+        ox: (Math.random() - 0.5) * 7,
+        oy: (Math.random() - 0.5) * 7,
+        oz: (Math.random() - 0.5) * 7,
+        ax: (Math.random() - 0.5) * 0.4,
+        ay: (Math.random() - 0.5) * 0.4,
+        az: (Math.random() - 0.5) * 0.2,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.2 + Math.random() * 0.4,
+        size:  0.08 + Math.random() * 0.14,
+      })
     }
-    return temp
-  }, [count])
+    return arr
+  }, [])
 
-  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const colorAttr = useMemo(() => {
+    const colors = new Float32Array(COUNT * 3)
+    const c = new THREE.Color()
+    for (let i = 0; i < COUNT; i++) {
+      c.set(PALETTE[i % PALETTE.length])
+      colors[i * 3]     = c.r
+      colors[i * 3 + 1] = c.g
+      colors[i * 3 + 2] = c.b
+    }
+    return colors
+  }, [])
 
-  useFrame((state) => {
+  useFrame(({ clock }) => {
     if (!meshRef.current) return
-
-    particles.forEach((particle, i) => {
-      let { t, factor, speed, xFactor, yFactor, zFactor } = particle
-
-      t = particle.t += speed / 2
-      const a = Math.cos(t) + Math.sin(t * 1) / 10
-      const b = Math.sin(t) + Math.cos(t * 2) / 10
-      const s = Math.cos(t)
-
+    const t = clock.getElapsedTime()
+    for (let i = 0; i < COUNT; i++) {
+      const d    = data[i]
+      const wave = Math.sin(t * d.speed + d.phase)
+      const s    = d.size * (0.7 + 0.3 * wave)
       dummy.position.set(
-        (particle.mx / 10) * a + xFactor + Math.cos((t / 10) * factor) + (Math.sin(t * 1) * factor) / 10,
-        (particle.my / 10) * b + yFactor + Math.sin((t / 10) * factor) + (Math.cos(t * 2) * factor) / 10,
-        (particle.my / 10) * b + zFactor + Math.cos((t / 10) * factor) + (Math.sin(t * 3) * factor) / 10
+        d.ox + Math.sin(t * d.ax + d.phase) * 0.8,
+        d.oy + wave * 0.6,
+        d.oz + Math.cos(t * d.az + d.phase) * 0.5,
       )
-
-      dummy.scale.set(s, s, s)
-      dummy.rotation.set(s * 5, s * 5, s * 5)
+      dummy.rotation.set(t * d.ax * 0.5, t * d.ay * 0.5, t * d.az * 0.5)
+      dummy.scale.setScalar(s)
       dummy.updateMatrix()
-
-      meshRef.current!.setMatrixAt(i, dummy.matrix)
-    })
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    }
     meshRef.current.instanceMatrix.needsUpdate = true
   })
 
-  const geometries = useMemo(() => {
-    return [
-      new THREE.BoxGeometry(0.2, 0.2, 0.2),
-      new THREE.ConeGeometry(0.1, 0.3, 8),
-      new THREE.TetrahedronGeometry(0.15),
-    ]
-  }, [])
-
   return (
-    <>
-      {geometries.map((geometry, i) => (
-        <instancedMesh
-          key={i}
-          ref={i === 0 ? meshRef : undefined}
-          args={[geometry, undefined, Math.floor(count / 3)]}
-        >
-          <meshStandardMaterial
-            color={i === 0 ? '#ff6b6b' : i === 1 ? '#4ecdc4' : '#a855f7'}
-            roughness={0.5}
-            metalness={0.5}
-            transparent
-            opacity={0.6}
-          />
-        </instancedMesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+      <octahedronGeometry args={[1, 0]} />
+      <meshBasicMaterial vertexColors transparent opacity={0.55} />
+      <bufferAttribute attach="geometry-attributes-color" array={colorAttr} count={COUNT} itemSize={3} />
+    </instancedMesh>
   )
 }

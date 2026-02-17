@@ -7,221 +7,236 @@ import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const experiences = [
+const education = [
   {
-    year: '2023 - Present',
-    title: 'Senior Frontend Developer',
-    company: 'Tech Innovations Inc.',
+    year: '2023 – Present',
+    title: 'Bachelor of Computer Applications (BCA)',
+    org: 'Arts, Commerce & Science College, Palus',
+    sub: 'Shivaji University, Kolhapur',
     description:
-      'Leading the development of cutting-edge 3D web applications using Three.js and React. Mentoring junior developers and establishing best practices.',
-    achievements: [
-      'Increased user engagement by 150%',
-      'Reduced load times by 40%',
-      'Led a team of 5 developers',
-    ],
-    color: '#ff6b6b',
-  },
-  {
-    year: '2021 - 2023',
-    title: 'Full Stack Developer',
-    company: 'Digital Creative Agency',
-    description:
-      'Developed responsive web applications with focus on performance and user experience. Implemented 3D visualizations for client projects.',
-    achievements: [
-      'Delivered 20+ client projects',
-      'Implemented CI/CD pipeline',
-      'Improved code quality by 60%',
-    ],
+      'Currently in 3rd year, studying Data Structures, DBMS, Operating Systems, Web Technologies and Software Engineering. Complementing academics with real-world full-stack projects in Java & Spring Boot.',
+    tags: ['3rd Year', 'BCA', 'Shivaji University'],
     color: '#4ecdc4',
+    icon: '🎓',
   },
   {
-    year: '2019 - 2021',
-    title: 'Frontend Developer',
-    company: 'StartUp Ventures',
+    year: '2020 – 2023',
+    title: 'Higher Secondary (12th) — Science',
+    org: 'Palus, Sangli, Maharashtra',
+    sub: 'Maharashtra State Board',
     description:
-      'Built modern web interfaces using React and Next.js. Collaborated with designers to create pixel-perfect implementations.',
-    achievements: [
-      'Reduced bounce rate by 35%',
-      'Optimized mobile performance',
-      'Implemented design system',
-    ],
+      'Completed HSC with focus on Science stream. Discovered passion for programming and started self-learning web development alongside academics.',
+    tags: ['HSC', 'Science', 'Maharashtra Board'],
     color: '#a855f7',
-  },
-  {
-    year: '2018 - 2019',
-    title: 'Junior Developer',
-    company: 'Web Solutions Ltd.',
-    description:
-      'Started career building responsive websites and learning modern web development practices. Gained experience in multiple technologies.',
-    achievements: [
-      'Completed 15+ projects',
-      'Learned React and Node.js',
-      'Contributed to open source',
-    ],
-    color: '#ffd93d',
+    icon: '📚',
   },
 ]
 
+const selfLearning = [
+  {
+    year: '2024 – Present',
+    title: 'Spring Boot & Microservices',
+    org: 'Self-Learning & Projects',
+    description:
+      'Mastering Spring Boot, Spring Security, Spring Data JPA, REST API design and microservices architecture. Built CrowdSpark-X Advanced as a hands-on production project.',
+    tags: ['Spring Boot', 'Microservices', 'Docker', 'Kafka'],
+    color: '#ff6b6b',
+    icon: '⚙️',
+  },
+  {
+    year: '2024',
+    title: 'Full Stack Development with PHP',
+    org: 'Self-Built Project',
+    description:
+      'Built CrowdSpark-X — a complete full-stack crowdfunding platform using PHP, MySQL, Cloudinary and PHPMailer. Handled everything from DB design to SMTP email integration.',
+    tags: ['PHP', 'MySQL', 'Cloudinary', 'SMTP'],
+    color: '#ffd93d',
+    icon: '🏆',
+  },
+  {
+    year: '2023 – 2024',
+    title: 'React & Next.js Frontend',
+    org: 'Self-Learning',
+    description:
+      'Learned React.js and Next.js to build the frontend for CrowdSpark-X Advanced. Comfortable with TypeScript, Tailwind CSS, REST API integration and component-based architecture.',
+    tags: ['React', 'Next.js', 'TypeScript', 'Tailwind'],
+    color: '#4ecdc4',
+    icon: '🎨',
+  },
+  {
+    year: '2024',
+    title: 'Docker & Cloud Basics',
+    org: 'Self-Learning',
+    description:
+      'Learned Docker containerisation, Kubernetes basics, and cloud fundamentals on AWS and Azure. Actively containerising the CrowdSpark-X microservices for deployment.',
+    tags: ['Docker', 'Kubernetes', 'AWS', 'Azure'],
+    color: '#a855f7',
+    icon: '🐳',
+  },
+]
+
+function TimelineCard({
+  item, index, side
+}: {
+  item: typeof selfLearning[0]
+  index: number
+  side: 'left' | 'right'
+}) {
+  return (
+    <motion.div
+      className={`flex items-start gap-6 ${side === 'right' ? 'flex-row-reverse' : ''}`}
+      initial={{ opacity: 0, x: side === 'left' ? -40 : 40 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, delay: index * 0.1 }}
+    >
+      {/* Content */}
+      <div className="flex-1">
+        <div className={`glass rounded-2xl p-6 group hover:bg-white/10 transition-all ${side === 'right' ? 'text-right' : ''}`}>
+          <div className={`flex items-center gap-3 mb-3 ${side === 'right' ? 'flex-row-reverse' : ''}`}>
+            <span className="text-xl">{item.icon}</span>
+            <span className="px-3 py-1 rounded-full text-xs font-mono"
+              style={{ backgroundColor: `${item.color}15`, color: item.color, border: `1px solid ${item.color}30` }}>
+              {item.year}
+            </span>
+          </div>
+          <h3 className="text-lg font-bold text-white mb-1 group-hover:text-accent transition-colors">
+            {item.title}
+          </h3>
+          <p className="text-sm font-medium mb-1" style={{ color: item.color }}>{item.org}</p>
+          {'sub' in item && <p className="text-xs text-white/40 mb-3">{(item as any).sub}</p>}
+          <p className="text-white/55 text-sm leading-relaxed mb-4">{item.description}</p>
+          <div className={`flex flex-wrap gap-2 ${side === 'right' ? 'justify-end' : ''}`}>
+            {item.tags.map(tag => (
+              <span key={tag} className="px-2.5 py-1 rounded-full text-xs text-white/50 bg-white/5 border border-white/10">
+                {tag}
+              </span>
+            ))}
+          </div>
+          <div className="h-0.5 w-0 group-hover:w-full transition-all duration-500 mt-4 rounded-full"
+            style={{ backgroundColor: item.color }} />
+        </div>
+      </div>
+
+      {/* Timeline dot */}
+      <div className="hidden md:flex flex-col items-center flex-shrink-0 pt-6">
+        <div className="w-4 h-4 rounded-full border-4 border-primary"
+          style={{ backgroundColor: item.color }} />
+      </div>
+
+      {/* Spacer */}
+      <div className="flex-1 hidden md:block" />
+    </motion.div>
+  )
+}
+
 export default function Experience() {
   const sectionRef = useRef<HTMLElement>(null)
-  const timelineRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!sectionRef.current || !timelineRef.current) return
-
-    const timeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: 'top center',
-        end: 'bottom center',
-        scrub: 1,
-      },
-    })
-
-    timeline.from('.timeline-line', {
-      height: 0,
-      duration: 1,
-    })
-
-    gsap.from('.experience-card', {
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: 'top center',
-      },
-      y: 100,
-      opacity: 0,
-      duration: 0.8,
-      stagger: 0.3,
-      ease: 'power3.out',
+    if (!sectionRef.current) return
+    gsap.from('.exp-card', {
+      scrollTrigger: { trigger: sectionRef.current, start: 'top 70%' },
+      y: 40, opacity: 0, duration: 0.6, stagger: 0.15, ease: 'power3.out',
     })
   }, [])
 
   return (
-    <section
-      id="experience"
-      ref={sectionRef}
-      className="relative min-h-screen py-20 bg-primary overflow-hidden"
-    >
-      {/* Background Effects */}
-      <div className="absolute inset-0 opacity-10">
+    <section id="experience" ref={sectionRef}
+      className="relative min-h-screen py-24 bg-primary overflow-hidden">
+
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
         <div className="absolute top-1/4 left-0 w-96 h-96 bg-accent rounded-full blur-[150px]" />
         <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-accent-blue rounded-full blur-[150px]" />
       </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.h2
-          className="text-4xl md:text-6xl font-heading font-bold text-center mb-20"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          Work <span className="gradient-text">Experience</span>
-        </motion.h2>
+      <div className="relative z-10 max-w-5xl mx-auto px-6">
 
-        {/* Timeline */}
-        <div ref={timelineRef} className="relative">
-          {/* Timeline Line */}
-          <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-accent via-accent-blue to-accent-purple timeline-line" />
+        {/* Header */}
+        <motion.div className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <p className="text-accent text-sm font-mono tracking-widest uppercase mb-4">Background</p>
+          <h2 className="text-4xl md:text-6xl font-heading font-bold">
+            Education & <span className="gradient-text">Journey</span>
+          </h2>
+          <p className="text-white/40 mt-4 text-sm">
+            Fresher — but self-driven, project-focused, and actively building production-level skills.
+          </p>
+        </motion.div>
 
-          {/* Experience Cards */}
-          <div className="space-y-12">
-            {experiences.map((exp, index) => (
-              <motion.div
-                key={exp.title}
-                className={`experience-card flex flex-col md:flex-row gap-8 ${
-                  index % 2 === 0 ? 'md:flex-row-reverse' : ''
-                }`}
-                initial={{ opacity: 0, x: index % 2 === 0 ? 100 : -100 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: index * 0.2 }}
-              >
-                {/* Year Badge */}
-                <div className="relative flex-shrink-0">
-                  <div
-                    className="absolute left-8 md:left-1/2 top-6 w-6 h-6 rounded-full transform -translate-x-1/2 border-4 border-primary z-10"
-                    style={{ backgroundColor: exp.color }}
-                  />
-                </div>
-
-                {/* Content */}
-                <div
-                  className={`flex-1 ${
-                    index % 2 === 0 ? 'md:text-right md:pr-16' : 'md:pl-16'
-                  }`}
-                >
-                  <motion.div
-                    className="glass rounded-2xl p-8 hover:bg-white/10 transition-all cursor-hover group"
-                    whileHover={{ scale: 1.02, y: -5 }}
-                  >
-                    <motion.div
-                      className="inline-block px-4 py-2 rounded-full mb-4"
-                      style={{ backgroundColor: `${exp.color}20` }}
-                    >
-                      <span className="font-bold" style={{ color: exp.color }}>
-                        {exp.year}
+        {/* Education */}
+        <div className="mb-14">
+          <p className="text-white/40 text-xs font-mono uppercase tracking-widest mb-6 text-center">📚 Education</p>
+          <div className="space-y-5">
+            {education.map((item, i) => (
+              <motion.div key={i} className="exp-card glass rounded-2xl p-6 group hover:bg-white/10 transition-all"
+                initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ delay: i * 0.12 }}>
+                <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                  <div className="flex-shrink-0">
+                    <span className="text-3xl">{item.icon}</span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-3 mb-2">
+                      <h3 className="text-lg font-bold text-white">{item.title}</h3>
+                      <span className="px-3 py-0.5 rounded-full text-xs font-mono"
+                        style={{ backgroundColor: `${item.color}15`, color: item.color }}>
+                        {item.year}
                       </span>
-                    </motion.div>
-
-                    <h3 className="text-2xl font-bold mb-2 text-white group-hover:text-accent transition-colors">
-                      {exp.title}
-                    </h3>
-
-                    <h4 className="text-lg text-accent-blue mb-4">{exp.company}</h4>
-
-                    <p className="text-white/70 mb-6 leading-relaxed">
-                      {exp.description}
-                    </p>
-
-                    {/* Achievements */}
-                    <div className="space-y-2">
-                      {exp.achievements.map((achievement, i) => (
-                        <motion.div
-                          key={i}
-                          className="flex items-center gap-2"
-                          initial={{ opacity: 0, x: -20 }}
-                          whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: index * 0.2 + i * 0.1 }}
-                        >
-                          <div
-                            className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: exp.color }}
-                          />
-                          <span className="text-white/60 text-sm">{achievement}</span>
-                        </motion.div>
+                    </div>
+                    <p className="font-medium text-sm mb-0.5" style={{ color: item.color }}>{item.org}</p>
+                    <p className="text-white/40 text-xs mb-3">{item.sub}</p>
+                    <p className="text-white/55 text-sm leading-relaxed mb-3">{item.description}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {item.tags.map(tag => (
+                        <span key={tag} className="px-2.5 py-1 rounded-full text-xs text-white/50 bg-white/5 border border-white/10">
+                          {tag}
+                        </span>
                       ))}
                     </div>
-
-                    {/* Hover Effect Line */}
-                    <div
-                      className="h-1 w-0 group-hover:w-full transition-all duration-500 mt-6 rounded-full"
-                      style={{ backgroundColor: exp.color }}
-                    />
-                  </motion.div>
+                  </div>
                 </div>
-
-                {/* Spacer for alignment */}
-                <div className="flex-1 hidden md:block" />
               </motion.div>
             ))}
           </div>
         </div>
 
-        {/* Download CV Button */}
-        <motion.div
-          className="text-center mt-20"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <motion.button
-            className="px-8 py-4 bg-gradient-to-r from-accent via-accent-blue to-accent-purple text-white rounded-full text-lg font-semibold hover:shadow-lg hover:shadow-accent/50 transition-shadow cursor-hover"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Download Full CV
-          </motion.button>
+        {/* Self-learning timeline */}
+        <div>
+          <p className="text-white/40 text-xs font-mono uppercase tracking-widest mb-8 text-center">
+            🚀 Self-Learning & Projects Timeline
+          </p>
+
+          {/* Timeline line */}
+          <div className="relative">
+            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-accent via-accent-blue to-accent-purple hidden md:block" />
+
+            <div className="space-y-8">
+              {selfLearning.map((item, i) => (
+                <TimelineCard key={i} item={item} index={i} side={i % 2 === 0 ? 'left' : 'right'} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Hire me CTA */}
+        <motion.div className="text-center mt-16"
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <div className="glass rounded-2xl p-8 max-w-xl mx-auto">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <div className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-green-400 font-semibold text-sm">Open to Jobs & Internships</span>
+            </div>
+            <p className="text-white/60 text-sm mb-5 leading-relaxed">
+              I'm a fresher with real project experience in Java, Spring Boot, React, Docker and cloud.
+              Looking for an opportunity to grow in a professional team environment.
+            </p>
+            <motion.a href="mailto:aj9411979585@gmail.com"
+              className="inline-block px-8 py-3.5 bg-gradient-to-r from-accent via-accent-blue to-accent-purple text-white rounded-full font-semibold text-sm hover:shadow-lg hover:shadow-accent/30 transition-shadow cursor-hover"
+              whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+              Get In Touch — aj9411979585@gmail.com
+            </motion.a>
+          </div>
         </motion.div>
       </div>
     </section>
