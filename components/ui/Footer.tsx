@@ -9,9 +9,9 @@ gsap.registerPlugin(ScrollToPlugin)
 
 const navLinks = [
   { name: 'Home',       href: '#hero' },
-  { name: 'About',      href: '#about' },
   { name: 'Projects',   href: '#projects' },
   { name: 'Skills',     href: '#skills' },
+  { name: 'About',      href: '#about' },
   { name: 'Experience', href: '#experience' },
   { name: 'Contact',    href: '#contact' },
 ]
@@ -24,7 +24,7 @@ const techStack = [
 const socials = [
   {
     name: 'GitHub',
-    href: 'https://github.com',
+    href: 'https://github.com/ajaypatil-8',
     color: '#4ecdc4',
     icon: (
       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -34,7 +34,7 @@ const socials = [
   },
   {
     name: 'LinkedIn',
-    href: 'https://linkedin.com',
+    href: 'https://www.linkedin.com/in/ajaypatil-8sink/',
     color: '#a855f7',
     icon: (
       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -44,7 +44,7 @@ const socials = [
   },
   {
     name: 'Email',
-    href: 'mailto:aj9411979585@gmail.com',
+    href :"https://mail.google.com/mail/?view=cm&fs=1&to=aj9411979585@gmail.com&su=Project%20Inquiry&body=Hello%20Ajay,%20I%20visited%20your%20portfolio%20and%20want%20to%20connect.",
     color: '#ff6b6b',
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,7 +116,9 @@ export default function Footer() {
             </span>
           </div>
           <motion.a
-            href="mailto:aj9411979585@gmail.com"
+            href="https://mail.google.com/mail/?view=cm&fs=1&to=aj9411979585@gmail.com&su=Project%20Inquiry&body=Hello%20Ajay,%20I%20visited%20your%20portfolio%20and%20want%20to%20connect."
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-sm font-mono text-accent hover:text-white transition-colors cursor-hover"
             whileHover={{ x: 3 }}
           >
@@ -263,24 +265,16 @@ export default function Footer() {
           transition={{ delay: 0.3 }}
         >
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-6">
-            <p className="text-white/30 text-xs font-mono">
+            <p className="text-white/70 text-xs font-mono">
               © {year} Ajay Patil. All rights reserved.
             </p>
             <span className="hidden sm:block w-px h-3 bg-white/15" />
-            <p className="text-white/20 text-xs font-mono">
-              Built with Next.js · Spring Boot · ❤️
+            <p className="text-white/70 text-xs font-mono">
+              Built with Next.js · Node.js · ❤️
             </p>
           </div>
 
-          <div className="flex items-center gap-4">
-            <a href="#" className="text-white/25 hover:text-white/60 text-xs transition-colors cursor-hover">
-              Privacy
-            </a>
-            <a href="#" className="text-white/25 hover:text-white/60 text-xs transition-colors cursor-hover">
-              Terms
-            </a>
-            <BackToTop />
-          </div>
+         
         </motion.div>
       </div>
     </footer>

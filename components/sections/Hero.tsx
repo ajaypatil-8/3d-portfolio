@@ -105,7 +105,7 @@ function HoloCore() {
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
-    holoMat.uniforms.uTime.value = t   // ✅ direct — no ref, no crash
+    holoMat.uniforms.uTime.value = t   
     if (outerRef.current) { outerRef.current.rotation.y = t * 0.2; outerRef.current.rotation.x = t * 0.1 }
     if (innerRef.current) { innerRef.current.rotation.y = -t * 0.3; innerRef.current.rotation.z = t * 0.15 }
   })
@@ -196,8 +196,6 @@ export default function Hero() {
   const statsRef    = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // ✅ Set initial state via GSAP only — no inline transform/opacity on elements
-    // This way GSAP fully controls the animation with no CSS conflicts
     gsap.set(badgeRef.current,    { opacity: 0, y: 24 })
     gsap.set(titleRef.current,    { opacity: 0, y: 40 })
     gsap.set(subtitleRef.current, { opacity: 0, y: 24 })
@@ -339,7 +337,7 @@ export default function Hero() {
               }}
               whileHover={{ scale: 1.06, borderColor: 'rgba(255,255,255,0.5)', backgroundColor: 'rgba(255,255,255,0.12)' }}
               whileTap={{ scale: 0.95 }}>
-              Hire Me
+              Get in Touch
             </motion.button>
           </div>
 

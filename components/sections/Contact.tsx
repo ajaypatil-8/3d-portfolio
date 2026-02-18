@@ -7,8 +7,8 @@ const socials = [
   {
     name: 'Email',
     value: 'aj9411979585@gmail.com',
-    href: 'mailto:aj9411979585@gmail.com',
-    color: '#ff6b6b',
+    href :"https://mail.google.com/mail/?view=cm&fs=1&to=aj9411979585@gmail.com&su=Project%20Inquiry&body=Hello%20Ajay,%20I%20visited%20your%20portfolio%20and%20want%20to%20connect.",
+    color : '#ff6b6b',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -18,7 +18,7 @@ const socials = [
   {
     name: 'GitHub',
     value: 'github.com/ajaypatil',
-    href: 'https://github.com',
+    href: 'https://github.com/ajaypatil-8',
     color: '#4ecdc4',
     icon: (
       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -29,7 +29,7 @@ const socials = [
   {
     name: 'LinkedIn',
     value: 'linkedin.com/in/ajaypatil',
-    href: 'https://linkedin.com',
+    href: 'https://www.linkedin.com/in/ajaypatil-8sink/',
     color: '#a855f7',
     icon: (
       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -50,14 +50,29 @@ export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setStatus('sending')
-    await new Promise(r => setTimeout(r, 1500))
-    setStatus('sent')
-    setForm({ name: '', email: '', subject: '', message: '' })
-    setTimeout(() => setStatus('idle'), 4000)
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setStatus('sending');
+
+  const res = await fetch('/api/contact', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(form),
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    setStatus('sent');
+    setForm({ name: '', email: '', subject: '', message: '' });
+  } else {
+    alert("Email failed");
+    setStatus('idle');
   }
+
+  setTimeout(() => setStatus('idle'), 4000);
+};
+
 
   return (
     <section id="contact" className="relative min-h-screen py-24 bg-gradient-to-b from-primary to-secondary overflow-hidden">

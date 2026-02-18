@@ -31,9 +31,9 @@ export default function Home() {
       <main className="relative">
         <Navigation />
         <Hero />
-        <About />
         <Projects />
         <Skills />
+        <About />    
         <Experience />
         <Contact />
         <Footer />
