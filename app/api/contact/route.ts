@@ -46,7 +46,7 @@ export async function POST(req: Request) {
           <p>Regards,</p>
           <b>Ajay Patil</b><br/>
           Java & Full Stack Developer<br/>
-          <a href="https://yourportfolio.com">Portfolio</a>
+          <a href="https://ajaypatil-8-3d-portfolio.vercel.app">Portfolio</a>
         </div>
       `,
     });
