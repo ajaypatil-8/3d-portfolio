@@ -6,6 +6,7 @@ import LoadingScreen from '@/components/ui/LoadingScreen'
 import Navigation from '@/components/ui/Navigation'
 import Footer from '@/components/ui/Footer'
 
+
 // Lazy-load every heavy section so they don't all parse+render at once
 const Hero       = dynamic(() => import('@/components/sections/Hero'),       { ssr: false })
 const About      = dynamic(() => import('@/components/sections/About'),      { ssr: false })

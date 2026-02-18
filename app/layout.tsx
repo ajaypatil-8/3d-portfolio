@@ -2,6 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import SmoothScrollProvider from '@/components/providers/SmoothScrollProvider'
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
@@ -16,6 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={inter.className}>
         <SmoothScrollProvider>
           {children}
+          <SpeedInsights />
         </SmoothScrollProvider>
       </body>
     </html>
