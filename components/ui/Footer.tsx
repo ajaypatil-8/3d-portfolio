@@ -35,7 +35,7 @@ const socials = [
   },
   {
     name: 'LinkedIn',
-    href: 'https://www.linkedin.com/in/ajaypatil-8sink/',
+    href: 'https://www.linkedin.com/in/ajaypatil-8eight/',
     color: '#a855f7',
     icon: (
       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
