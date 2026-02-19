@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { gsap } from 'gsap'
 import { ScrollToPlugin } from 'gsap/dist/ScrollToPlugin'
+import { useTheme } from '@/components/providers/ThemeProvider'
 
 gsap.registerPlugin(ScrollToPlugin)
 
@@ -44,7 +45,7 @@ const socials = [
   },
   {
     name: 'Email',
-    href :"https://mail.google.com/mail/?view=cm&fs=1&to=aj9411979585@gmail.com&su=Project%20Inquiry&body=Hello%20Ajay,%20I%20visited%20your%20portfolio%20and%20want%20to%20connect.",
+    href: 'https://mail.google.com/mail/?view=cm&fs=1&to=aj9411979585@gmail.com&su=Project%20Inquiry&body=Hello%20Ajay,%20I%20visited%20your%20portfolio%20and%20want%20to%20connect.',
     color: '#ff6b6b',
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,10 +58,7 @@ const socials = [
 
 function BackToTop() {
   const [hovered, setHovered] = useState(false)
-
-  const handleClick = () => {
-    gsap.to(window, { duration: 1.2, scrollTo: 0, ease: 'power3.inOut' })
-  }
+  const handleClick = () => gsap.to(window, { duration: 1.2, scrollTo: 0, ease: 'power3.inOut' })
 
   return (
     <motion.button
@@ -73,18 +71,14 @@ function BackToTop() {
       whileTap={{ scale: 0.93 }}
       aria-label="Back to top"
     >
-      <motion.span
-        className="absolute inset-0 bg-white/20"
+      <motion.span className="absolute inset-0 bg-white/20"
         initial={{ y: '100%' }}
         animate={{ y: hovered ? '0%' : '100%' }}
-        transition={{ duration: 0.3 }}
-      />
-      <motion.svg
-        className="w-5 h-5 text-white relative z-10"
+        transition={{ duration: 0.3 }} />
+      <motion.svg className="w-5 h-5 text-white relative z-10"
         fill="none" stroke="currentColor" viewBox="0 0 24 24"
         animate={{ y: hovered ? -2 : 0 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-      >
+        transition={{ type: 'spring', stiffness: 400, damping: 20 }}>
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
       </motion.svg>
     </motion.button>
@@ -92,6 +86,7 @@ function BackToTop() {
 }
 
 export default function Footer() {
+  const { theme } = useTheme()
   const year = new Date().getFullYear()
 
   const scrollTo = (href: string) => {
@@ -100,26 +95,32 @@ export default function Footer() {
   }
 
   return (
-    <footer className="relative bg-[#080808] border-t border-white/[0.06] overflow-hidden">
+    <footer className="relative overflow-hidden"
+      style={{
+        backgroundColor: 'var(--footer-bg)',
+        borderTop: '1px solid var(--footer-border)',
+      }}>
 
-      {/* ── Ambient glows ─────────────────────────────────────── */}
-      <div className="absolute bottom-0 left-1/4 w-64 h-64 bg-accent/6 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-accent-purple/6 rounded-full blur-[100px] pointer-events-none" />
+      {/* Ambient glows */}
+      <div className="absolute bottom-0 left-1/4 w-64 h-64 rounded-full blur-[100px] pointer-events-none"
+        style={{ backgroundColor: 'rgba(78,205,196,0.05)' }} />
+      <div className="absolute bottom-0 right-1/4 w-64 h-64 rounded-full blur-[100px] pointer-events-none"
+        style={{ backgroundColor: 'rgba(168,85,247,0.05)' }} />
 
-      {/* ── Top availability bar ──────────────────────────────── */}
-      <div className="border-b border-white/[0.06]">
+      {/* Top availability bar */}
+      <div style={{ borderBottom: '1px solid var(--footer-border)' }}>
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-white/60 text-sm">
-              <span className="text-white font-semibold">Available</span> for full-time jobs & internships
+            <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>Available</span> for full-time jobs &amp; internships
             </span>
           </div>
           <motion.a
             href="https://mail.google.com/mail/?view=cm&fs=1&to=aj9411979585@gmail.com&su=Project%20Inquiry&body=Hello%20Ajay,%20I%20visited%20your%20portfolio%20and%20want%20to%20connect."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-mono text-accent hover:text-white transition-colors cursor-hover"
+            target="_blank" rel="noopener noreferrer"
+            className="text-sm font-mono cursor-hover transition-colors"
+            style={{ color: 'var(--accent)' }}
             whileHover={{ x: 3 }}
           >
             aj9411979585@gmail.com →
@@ -127,54 +128,44 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* ── Main grid ─────────────────────────────────────────── */}
+      {/* Main grid */}
       <div className="max-w-7xl mx-auto px-6 py-14">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 mb-12">
 
-          {/* Brand col — wider */}
-          <motion.div
-            className="md:col-span-5"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            {/* Logo */}
+          {/* Brand col */}
+          <motion.div className="md:col-span-5"
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center"
                 style={{ background: 'linear-gradient(135deg, #ff6b6b, #a855f7)' }}>
                 <span className="text-white font-bold text-sm">AP</span>
               </div>
               <div>
-                <div className="text-white font-heading font-bold text-lg leading-none">
+                <div className="font-heading font-bold text-lg leading-none" style={{ color: 'var(--text-primary)' }}>
                   Ajay <span className="gradient-text">Patil</span>
                 </div>
-                <div className="text-white/35 text-xs font-mono">Full Stack Developer</div>
+                <div className="text-xs font-mono" style={{ color: 'var(--text-faint)' }}>Full Stack Developer</div>
               </div>
             </div>
 
-            <p className="text-white/50 text-sm leading-relaxed mb-5 max-w-xs">
+            <p className="text-sm leading-relaxed mb-5 max-w-xs" style={{ color: 'var(--text-muted)' }}>
               BCA student from Palus, Sangli — building production-grade apps with
               Java, Spring Boot, and modern web tech. Actively looking for my first opportunity.
             </p>
 
-            {/* Social icons */}
             <div className="flex gap-2.5">
               {socials.map((s, i) => (
-                <motion.a
-                  key={s.name}
-                  href={s.href}
-                  target={s.href.startsWith('http') ? '_blank' : undefined}
-                  rel="noreferrer"
+                <motion.a key={s.name} href={s.href}
+                  target={s.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer"
                   aria-label={s.name}
-                  className="w-9 h-9 glass rounded-xl flex items-center justify-center transition-colors cursor-hover"
-                  style={{ color: 'rgba(255,255,255,0.4)' }}
+                  className="w-9 h-9 glass rounded-xl flex items-center justify-center cursor-hover"
+                  style={{ color: 'var(--text-muted)' }}
                   whileHover={{ scale: 1.12, color: s.color }}
                   whileTap={{ scale: 0.9 }}
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.08 }}
-                >
+                  transition={{ delay: i * 0.08 }}>
                   {s.icon}
                 </motion.a>
               ))}
@@ -182,30 +173,27 @@ export default function Footer() {
           </motion.div>
 
           {/* Nav links */}
-          <motion.div
-            className="md:col-span-3"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-          >
-            <h4 className="text-white text-sm font-semibold mb-4 flex items-center gap-2">
-              <span className="w-4 h-px bg-accent inline-block" />
+          <motion.div className="md:col-span-3"
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ delay: 0.1 }}>
+            <h4 className="text-sm font-semibold mb-4 flex items-center gap-2"
+              style={{ color: 'var(--text-primary)' }}>
+              <span className="w-4 h-px bg-accent inline-block" style={{ backgroundColor: 'var(--accent)' }} />
               Navigation
             </h4>
             <ul className="space-y-2.5">
               {navLinks.map((link, i) => (
                 <motion.li key={link.name}
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1 + i * 0.05 }}>
-                  <a
-                    href={link.href}
+                  initial={{ opacity: 0, x: -10 }} whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }} transition={{ delay: 0.1 + i * 0.05 }}>
+                  <a href={link.href}
                     onClick={e => { e.preventDefault(); scrollTo(link.href) }}
-                    className="text-white/45 hover:text-accent text-sm transition-colors cursor-hover flex items-center gap-2 group"
-                  >
-                    <span className="w-0 group-hover:w-3 h-px bg-accent transition-all duration-200" />
+                    className="text-sm flex items-center gap-2 group cursor-hover"
+                    style={{ color: 'var(--text-muted)' }}
+                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
+                    <span className="w-0 group-hover:w-3 h-px transition-all duration-200"
+                      style={{ backgroundColor: 'var(--accent)' }} />
                     {link.name}
                   </a>
                 </motion.li>
@@ -214,35 +202,30 @@ export default function Footer() {
           </motion.div>
 
           {/* Tech stack */}
-          <motion.div
-            className="md:col-span-4"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-          >
-            <h4 className="text-white text-sm font-semibold mb-4 flex items-center gap-2">
-              <span className="w-4 h-px bg-accent-blue inline-block" />
+          <motion.div className="md:col-span-4"
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ delay: 0.2 }}>
+            <h4 className="text-sm font-semibold mb-4 flex items-center gap-2"
+              style={{ color: 'var(--text-primary)' }}>
+              <span className="w-4 h-px inline-block" style={{ backgroundColor: '#60a5fa' }} />
               Tech Stack
             </h4>
             <div className="flex flex-wrap gap-2">
               {techStack.map((tech, i) => (
-                <motion.span
-                  key={tech}
-                  className="px-3 py-1 glass rounded-full text-xs text-white/50 hover:text-white/80 hover:border-accent/30 transition-colors cursor-hover border border-transparent"
+                <motion.span key={tech}
+                  className="px-3 py-1 glass rounded-full text-xs cursor-hover"
+                  style={{ color: 'var(--text-muted)' }}
                   initial={{ opacity: 0, scale: 0.85 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.2 + i * 0.04 }}
-                  whileHover={{ scale: 1.05 }}
-                >
+                  whileHover={{ scale: 1.05, color: 'var(--text-primary)' }}>
                   {tech}
                 </motion.span>
               ))}
             </div>
 
-            {/* Location */}
-            <div className="mt-5 flex items-center gap-2 text-white/35 text-xs">
+            <div className="mt-5 flex items-center gap-2 text-xs" style={{ color: 'var(--text-faint)' }}>
               <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -253,28 +236,24 @@ export default function Footer() {
           </motion.div>
         </div>
 
-        {/* ── Divider ────────────────────────────────────────────── */}
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-6" />
+        {/* Divider */}
+        <div className="h-px w-full mb-6"
+          style={{ background: 'linear-gradient(to right, transparent, var(--border-strong), transparent)' }} />
 
-        {/* ── Bottom bar ─────────────────────────────────────────── */}
-        <motion.div
-          className="flex flex-col sm:flex-row justify-between items-center gap-4"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-        >
+        {/* Bottom bar */}
+        <motion.div className="flex flex-col sm:flex-row justify-between items-center gap-4"
+          initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+          transition={{ delay: 0.3 }}>
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-6">
-            <p className="text-white/70 text-xs font-mono">
+            <p className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
               © {year} Ajay Patil. All rights reserved.
             </p>
-            <span className="hidden sm:block w-px h-3 bg-white/15" />
-            <p className="text-white/70 text-xs font-mono">
+            <span className="hidden sm:block w-px h-3" style={{ backgroundColor: 'var(--border-strong)' }} />
+            <p className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
               Built with Next.js · Node.js · ❤️
             </p>
           </div>
-
-         
+          <BackToTop />
         </motion.div>
       </div>
     </footer>

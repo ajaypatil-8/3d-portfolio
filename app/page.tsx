@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import LoadingScreen from '@/components/ui/LoadingScreen'
 import Navigation from '@/components/ui/Navigation'
 import Footer from '@/components/ui/Footer'
+import GitHubContributions from '@/components/sections/GitHubContribution'
 
 
 // Lazy-load every heavy section so they don't all parse+render at once
@@ -34,6 +35,7 @@ export default function Home() {
         <Hero />
         <Projects />
         <Skills />
+        <GitHubContributions />
         <About />    
         <Experience />
         <Contact />

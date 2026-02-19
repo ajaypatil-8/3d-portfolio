@@ -4,11 +4,8 @@ import { motion } from 'framer-motion'
 
 const skillCategories = [
   {
-    title: 'Backend',
-    icon: '⚙️',
-    color: '#ff6b6b',
-    bg: 'rgba(255,107,107,0.07)',
-    border: 'rgba(255,107,107,0.18)',
+    title: 'Backend', icon: '⚙️', color: '#ff6b6b',
+    bg: 'rgba(255,107,107,0.07)', border: 'rgba(255,107,107,0.18)',
     skills: [
       { name: 'Java',            level: 'Proficient'  },
       { name: 'Spring Boot',     level: 'Proficient'  },
@@ -21,11 +18,8 @@ const skillCategories = [
     ],
   },
   {
-    title: 'Frontend & Node',
-    icon: '🎨',
-    color: '#4ecdc4',
-    bg: 'rgba(78,205,196,0.07)',
-    border: 'rgba(78,205,196,0.18)',
+    title: 'Frontend & Node', icon: '🎨', color: '#4ecdc4',
+    bg: 'rgba(78,205,196,0.07)', border: 'rgba(78,205,196,0.18)',
     skills: [
       { name: 'HTML / CSS',       level: 'Proficient'  },
       { name: 'JavaScript',       level: 'Proficient'  },
@@ -40,11 +34,8 @@ const skillCategories = [
     ],
   },
   {
-    title: 'Database & Cloud',
-    icon: '🗄️',
-    color: '#a855f7',
-    bg: 'rgba(168,85,247,0.07)',
-    border: 'rgba(168,85,247,0.18)',
+    title: 'Database & Cloud', icon: '🗄️', color: '#a855f7',
+    bg: 'rgba(168,85,247,0.07)', border: 'rgba(168,85,247,0.18)',
     skills: [
       { name: 'MySQL',      level: 'Proficient'  },
       { name: 'PostgreSQL', level: 'Proficient'  },
@@ -66,14 +57,10 @@ const levelStyle: Record<string, { bg: string; dot: string }> = {
 }
 
 const tools = [
-  { name: 'IntelliJ IDEA',  icon: '🧠' },
-  { name: 'VS Code',        icon: '💻' },
-  { name: 'GitHub',         icon: '🐙' },
-  { name: 'Postman',        icon: '📮' },
-  { name: 'Docker Desktop', icon: '🐳' },
-  { name: 'Cloudinary',     icon: '☁️' },
-  { name: 'Kafka',          icon: '📨' },
-  { name: 'XAMPP',          icon: '🛠️' },
+  { name: 'IntelliJ IDEA', icon: '🧠' }, { name: 'VS Code',        icon: '💻' },
+  { name: 'GitHub',        icon: '🐙' }, { name: 'Postman',        icon: '📮' },
+  { name: 'Docker Desktop',icon: '🐳' }, { name: 'Cloudinary',     icon: '☁️' },
+  { name: 'Kafka',         icon: '📨' }, { name: 'XAMPP',          icon: '🛠️' },
 ]
 
 const legend = [
@@ -84,12 +71,9 @@ const legend = [
 
 export default function Skills() {
   return (
-    <section
-      id="skills"
-      className="relative py-16 overflow-hidden"
-      style={{ backgroundColor: '#0d0d0d' }}
-    >
-      {/* CSS blobs */}
+    <section id="skills" className="relative py-16 overflow-hidden"
+      style={{ backgroundColor: 'var(--bg-secondary)' }}>
+
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-10 left-1/4 w-72 h-72 rounded-full blur-[120px]"
           style={{ backgroundColor: 'rgba(255,107,107,0.05)' }} />
@@ -98,8 +82,6 @@ export default function Skills() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6">
-
-        {/* Header */}
         <motion.div className="text-center mb-4"
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }} transition={{ duration: 0.5 }}>
@@ -107,49 +89,38 @@ export default function Skills() {
             Tech Stack
           </p>
           <h2 className="font-heading font-bold mb-2"
-            style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#ffffff' }}>
+            style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: 'var(--text-primary)' }}>
             Skills &amp;{' '}
             <span style={{
               background: 'linear-gradient(135deg, #ff6b6b, #4ecdc4, #a855f7)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
             }}>Expertise</span>
           </h2>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem', maxWidth: 420, margin: '0 auto' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', maxWidth: 420, margin: '0 auto' }}>
             Focused on Java backend engineering with full-stack capabilities and cloud deployment.
           </p>
         </motion.div>
 
-        {/* Legend */}
         <motion.div className="flex flex-wrap items-center justify-center gap-4 mb-8"
           initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
           transition={{ delay: 0.15 }}>
           {legend.map((l) => (
             <div key={l.label} className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: l.dot }} />
-              <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem', fontFamily: 'monospace' }}>
-                {l.label}
-              </span>
-              <span className="hidden sm:inline" style={{ color: 'rgba(255,255,255,0.22)', fontSize: '0.70rem' }}>
-                — {l.desc}
-              </span>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', fontFamily: 'monospace' }}>{l.label}</span>
+              <span className="hidden sm:inline" style={{ color: 'var(--text-muted)', fontSize: '0.70rem' }}>— {l.desc}</span>
             </div>
           ))}
         </motion.div>
 
-        {/* Skill cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {skillCategories.map((cat, ci) => (
-            <motion.div
-              key={cat.title}
-              className="rounded-2xl p-5"
+            <motion.div key={cat.title} className="rounded-2xl p-5"
               style={{ backgroundColor: cat.bg, border: `1px solid ${cat.border}`, backdropFilter: 'blur(12px)' }}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: ci * 0.1 }}
-              whileHover={{ y: -3, transition: { duration: 0.2 } }}
-            >
-              {/* Card header */}
+              initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }} transition={{ duration: 0.5, delay: ci * 0.1 }}
+              whileHover={{ y: -3, transition: { duration: 0.2 } }}>
+
               <div className="flex items-center gap-2.5 mb-4">
                 <div className="w-8 h-8 rounded-xl flex items-center justify-center text-lg"
                   style={{ backgroundColor: `${cat.color}18`, border: `1px solid ${cat.color}28` }}>
@@ -158,24 +129,20 @@ export default function Skills() {
                 <h3 className="text-sm font-bold" style={{ color: cat.color }}>{cat.title}</h3>
               </div>
 
-              {/* Skill tags */}
               <div className="flex flex-wrap gap-1.5">
                 {cat.skills.map((skill, si) => {
                   const ls = levelStyle[skill.level]
                   return (
-                    <motion.div
-                      key={skill.name}
+                    <motion.div key={skill.name}
                       className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
                       style={{ backgroundColor: ls.bg, border: `1px solid ${ls.dot}30` }}
                       initial={{ opacity: 0, scale: 0.85 }}
                       whileInView={{ opacity: 1, scale: 1 }}
                       viewport={{ once: true }}
                       transition={{ delay: ci * 0.06 + si * 0.03 }}
-                      whileHover={{ scale: 1.06 }}
-                    >
-                      <div className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: ls.dot }} />
-                      <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.88)' }}>
+                      whileHover={{ scale: 1.06 }}>
+                      <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: ls.dot }} />
+                      <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
                         {skill.name}
                       </span>
                     </motion.div>
@@ -183,9 +150,7 @@ export default function Skills() {
                 })}
               </div>
 
-              {/* Summary row */}
-              <div className="mt-4 pt-3 flex gap-3 flex-wrap"
-                style={{ borderTop: `1px solid ${cat.color}12` }}>
+              <div className="mt-4 pt-3 flex gap-3 flex-wrap" style={{ borderTop: `1px solid ${cat.color}12` }}>
                 {(['Proficient', 'Comfortable', 'Familiar'] as const).map(lvl => {
                   const count = cat.skills.filter(s => s.level === lvl).length
                   if (!count) return null
@@ -193,7 +158,7 @@ export default function Skills() {
                   return (
                     <div key={lvl} className="flex items-center gap-1.5">
                       <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: ls.dot }} />
-                      <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.65rem', fontFamily: 'monospace' }}>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem', fontFamily: 'monospace' }}>
                         {count} {lvl}
                       </span>
                     </div>
@@ -204,52 +169,37 @@ export default function Skills() {
           ))}
         </div>
 
-        {/* Tools + Fresher note — side by side on md+ */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-
-          {/* Tools */}
-          <motion.div
-            initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
             <p className="text-xs font-mono uppercase tracking-widest mb-3 text-center md:text-left"
-              style={{ color: 'rgba(255,255,255,0.3)' }}>Daily Tools</p>
+              style={{ color: 'var(--text-muted)' }}>Daily Tools</p>
             <div className="flex flex-wrap gap-2">
               {tools.map((tool, i) => (
                 <motion.div key={tool.name}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-full"
-                  style={{
-                    backgroundColor: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    backdropFilter: 'blur(8px)',
-                  }}
+                  style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', backdropFilter: 'blur(8px)' }}
                   initial={{ opacity: 0, scale: 0.85 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.04 }}
                   whileHover={{ scale: 1.07 }}>
                   <span className="text-sm">{tool.icon}</span>
-                  <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.75)' }}>{tool.name}</span>
+                  <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{tool.name}</span>
                 </motion.div>
               ))}
             </div>
           </motion.div>
 
-          {/* Fresher note */}
           <motion.div className="rounded-2xl p-5"
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              backdropFilter: 'blur(12px)',
-            }}
+            style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', backdropFilter: 'blur(12px)' }}
             initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
               🎓{' '}
-              <span style={{ color: '#ffffff', fontWeight: 600 }}>Currently in 3rd year BCA</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Currently in 3rd year BCA</span>
               {' '}at Arts, Commerce &amp; Science College, Palus (Shivaji University, Kolhapur).
-              Actively learning advanced Spring Boot microservices, cloud deployment and system design
-              to be production-ready.
+              Actively learning advanced Spring Boot microservices, cloud deployment and system design to be production-ready.
             </p>
           </motion.div>
-
         </div>
       </div>
     </section>

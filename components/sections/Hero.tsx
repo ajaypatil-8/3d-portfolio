@@ -2,15 +2,15 @@
 
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
-import { motion }           from 'framer-motion'
-import { useEffect, useRef, useMemo } from 'react'
-import { gsap }             from 'gsap'
-import { ScrollToPlugin }   from 'gsap/dist/ScrollToPlugin'
-import * as THREE           from 'three'
+import { motion } from 'framer-motion'
+import { useEffect, useRef, useMemo, useState, memo } from 'react'
+import { gsap } from 'gsap'
+import { ScrollToPlugin } from 'gsap/dist/ScrollToPlugin'
+import * as THREE from 'three'
+import { useTheme } from '@/components/providers/ThemeProvider'
 
 gsap.registerPlugin(ScrollToPlugin)
 
-// ─── 3D: Orbit rings ─────────────────────────────────────────────
 function makeOrbit(count: number, radius: number, tilt: number): Float32Array {
   const pos = new Float32Array(count * 3)
   for (let i = 0; i < count; i++) {
@@ -25,48 +25,66 @@ function makeOrbit(count: number, radius: number, tilt: number): Float32Array {
   return pos
 }
 
-function OrbitRings() {
+// ── Each 3D component reads theme itself and updates materials imperatively ──
+
+function OrbitRings({ isMobile }: { isMobile: boolean }) {
+  const { theme } = useTheme()
   const r1 = useRef<THREE.Points>(null)
   const r2 = useRef<THREE.Points>(null)
   const r3 = useRef<THREE.Points>(null)
-  const ring1 = useMemo(() => makeOrbit(120, 1.6,  Math.PI * 0.18), [])
-  const ring2 = useMemo(() => makeOrbit(90,  2.2, -Math.PI * 0.28), [])
-  const ring3 = useMemo(() => makeOrbit(70,  2.9,  Math.PI * 0.06), [])
+
+  const ring1 = useMemo(() => makeOrbit(isMobile ? 60 : 120, 1.6,  Math.PI * 0.18), [isMobile])
+  const ring2 = useMemo(() => makeOrbit(isMobile ? 45 : 90,  2.2, -Math.PI * 0.28), [isMobile])
+  const ring3 = useMemo(() => makeOrbit(isMobile ? 35 : 70,  2.9,  Math.PI * 0.06), [isMobile])
+
+  // Create materials once — never recreate them
+  const mat1 = useMemo(() => new THREE.PointsMaterial({ size: isMobile ? 0.025 : 0.028, sizeAttenuation: true, transparent: true, depthWrite: false }), [isMobile])
+  const mat2 = useMemo(() => new THREE.PointsMaterial({ size: isMobile ? 0.02  : 0.022, sizeAttenuation: true, transparent: true, depthWrite: false }), [isMobile])
+  const mat3 = useMemo(() => new THREE.PointsMaterial({ size: isMobile ? 0.016 : 0.018, sizeAttenuation: true, transparent: true, depthWrite: false }), [isMobile])
+
+  // Update material colors imperatively when theme changes — no remount
+  useEffect(() => {
+    const light = theme === 'light'
+    mat1.color.set(light ? '#7c3aed' : '#a78bfa'); mat1.opacity = light ? 0.6 : 0.9
+    mat2.color.set(light ? '#0e9488' : '#4ecdc4'); mat2.opacity = light ? 0.5 : 0.7
+    mat3.color.set(light ? '#dc2626' : '#ff6b6b'); mat3.opacity = light ? 0.4 : 0.5
+  }, [theme, mat1, mat2, mat3])
+
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
     if (r1.current) r1.current.rotation.y = t * 0.22
     if (r2.current) r2.current.rotation.y = -t * 0.15
     if (r3.current) r3.current.rotation.y = t * 0.09
   })
+
   return (
     <group>
-      {[
-        { ref: r1, pos: ring1, color: '#a78bfa', size: 0.028, opacity: 0.9 },
-        { ref: r2, pos: ring2, color: '#4ecdc4', size: 0.022, opacity: 0.7 },
-        { ref: r3, pos: ring3, color: '#ff6b6b', size: 0.018, opacity: 0.5 },
-      ].map((r, i) => (
-        <points key={i} ref={r.ref} frustumCulled={false}>
-          <bufferGeometry>
-            <bufferAttribute attach="attributes-position" array={r.pos} count={r.pos.length / 3} itemSize={3} />
-          </bufferGeometry>
-          <pointsMaterial size={r.size} color={r.color} sizeAttenuation transparent opacity={r.opacity} depthWrite={false} />
-        </points>
-      ))}
+      <points ref={r1} frustumCulled={false} material={mat1}>
+        <bufferGeometry><bufferAttribute attach="attributes-position" array={ring1} count={ring1.length / 3} itemSize={3} /></bufferGeometry>
+      </points>
+      <points ref={r2} frustumCulled={false} material={mat2}>
+        <bufferGeometry><bufferAttribute attach="attributes-position" array={ring2} count={ring2.length / 3} itemSize={3} /></bufferGeometry>
+      </points>
+      <points ref={r3} frustumCulled={false} material={mat3}>
+        <bufferGeometry><bufferAttribute attach="attributes-position" array={ring3} count={ring3.length / 3} itemSize={3} /></bufferGeometry>
+      </points>
     </group>
   )
 }
 
-// ─── 3D: Hologram core ───────────────────────────────────────────
 function HoloCore() {
+  const { theme } = useTheme()
   const outerRef = useRef<THREE.Mesh>(null)
   const innerRef = useRef<THREE.Mesh>(null)
+  const innerMatRef = useRef<THREE.MeshBasicMaterial>(null)
 
-  // ✅ useMemo = stable object — update directly, NO ref needed
+  // Create shader material once — update uniforms imperatively
   const holoMat = useMemo(() => new THREE.ShaderMaterial({
     uniforms: {
-      uTime:   { value: 0 },
-      uColorA: { value: new THREE.Color('#4ecdc4') },
-      uColorB: { value: new THREE.Color('#a855f7') },
+      uTime:    { value: 0 },
+      uColorA:  { value: new THREE.Color('#4ecdc4') },
+      uColorB:  { value: new THREE.Color('#a855f7') },
+      uOpacity: { value: 0.85 },
     },
     vertexShader: `
       uniform float uTime;
@@ -83,6 +101,7 @@ function HoloCore() {
       uniform float uTime;
       uniform vec3 uColorA;
       uniform vec3 uColorB;
+      uniform float uOpacity;
       varying vec3 vPos;
       varying vec3 vNormal;
       void main() {
@@ -92,7 +111,7 @@ function HoloCore() {
         float glow = pow(rim, 1.8) * 0.6;
         float t    = vPos.y * 0.5 + 0.5;
         vec3  col  = mix(uColorA, uColorB, clamp(t, 0.0, 1.0));
-        gl_FragColor = vec4(col, clamp(band + glow, 0.0, 0.85));
+        gl_FragColor = vec4(col, clamp((band + glow) * uOpacity, 0.0, uOpacity));
       }
     `,
     transparent: true,
@@ -103,9 +122,23 @@ function HoloCore() {
     color: '#4ecdc4', wireframe: true, transparent: true, opacity: 0.18,
   }), [])
 
+  // Update uniforms/material imperatively — zero remounting
+  useEffect(() => {
+    const light = theme === 'light'
+    holoMat.uniforms.uColorA.value.set(light ? '#0e9488' : '#4ecdc4')
+    holoMat.uniforms.uColorB.value.set(light ? '#7c3aed' : '#a855f7')
+    holoMat.uniforms.uOpacity.value = light ? 0.28 : 0.85
+    wireMat.color.set(light ? '#0e9488' : '#4ecdc4')
+    wireMat.opacity = light ? 0.1 : 0.18
+    if (innerMatRef.current) {
+      innerMatRef.current.color.set(light ? '#dc2626' : '#ff6b6b')
+      innerMatRef.current.opacity = light ? 0.1 : 0.35
+    }
+  }, [theme, holoMat, wireMat])
+
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
-    holoMat.uniforms.uTime.value = t   
+    holoMat.uniforms.uTime.value = t
     if (outerRef.current) { outerRef.current.rotation.y = t * 0.2; outerRef.current.rotation.x = t * 0.1 }
     if (innerRef.current) { innerRef.current.rotation.y = -t * 0.3; innerRef.current.rotation.z = t * 0.15 }
   })
@@ -116,32 +149,36 @@ function HoloCore() {
       <mesh ref={outerRef} material={wireMat}><icosahedronGeometry args={[1.15, 1]} /></mesh>
       <mesh ref={innerRef}>
         <octahedronGeometry args={[0.42, 0]} />
-        <meshBasicMaterial color="#ff6b6b" wireframe transparent opacity={0.35} />
+        <meshBasicMaterial ref={innerMatRef} color="#ff6b6b" wireframe transparent opacity={0.35} />
       </mesh>
     </group>
   )
 }
 
-// ─── 3D: Floating hexagons ────────────────────────────────────────
-const HEX = [
-  { pos: [-3.2,  1.2, -1.8] as [number,number,number], speed: 0.40, phase: 0.0 },
-  { pos: [ 3.1,  1.4, -2.0] as [number,number,number], speed: 0.50, phase: 1.2 },
-  { pos: [-2.6, -1.4, -1.5] as [number,number,number], speed: 0.35, phase: 2.4 },
-  { pos: [ 2.8, -1.2, -1.6] as [number,number,number], speed: 0.45, phase: 0.8 },
-  { pos: [-0.8,  2.2, -2.5] as [number,number,number], speed: 0.30, phase: 1.8 },
-  { pos: [ 1.0, -2.3, -2.2] as [number,number,number], speed: 0.55, phase: 3.0 },
-]
-
-function FloatingHexagons() {
+function FloatingHexagons({ isMobile }: { isMobile: boolean }) {
+  const { theme } = useTheme()
   const meshRef = useRef<THREE.InstancedMesh>(null)
+  const matRef  = useRef<THREE.MeshBasicMaterial>(null)
   const dummy   = useMemo(() => new THREE.Object3D(), [])
-  const colors  = useMemo(() => {
-    const pal = ['#ff6b6b','#4ecdc4','#a855f7','#ffd93d','#60a5fa','#4ecdc4']
-    const arr = new Float32Array(HEX.length * 3)
-    const c   = new THREE.Color()
-    HEX.forEach((_, i) => { c.set(pal[i % pal.length]); arr[i*3]=c.r; arr[i*3+1]=c.g; arr[i*3+2]=c.b })
-    return arr
-  }, [])
+
+  const HEX = useMemo(() => isMobile ? [
+    { pos: [-3.2,  1.2, -1.8] as [number,number,number], speed: 0.40, phase: 0.0 },
+    { pos: [ 3.1,  1.4, -2.0] as [number,number,number], speed: 0.50, phase: 1.2 },
+    { pos: [-0.8,  2.2, -2.5] as [number,number,number], speed: 0.30, phase: 1.8 },
+  ] : [
+    { pos: [-3.2,  1.2, -1.8] as [number,number,number], speed: 0.40, phase: 0.0 },
+    { pos: [ 3.1,  1.4, -2.0] as [number,number,number], speed: 0.50, phase: 1.2 },
+    { pos: [-2.6, -1.4, -1.5] as [number,number,number], speed: 0.35, phase: 2.4 },
+    { pos: [ 2.8, -1.2, -1.6] as [number,number,number], speed: 0.45, phase: 0.8 },
+    { pos: [-0.8,  2.2, -2.5] as [number,number,number], speed: 0.30, phase: 1.8 },
+    { pos: [ 1.0, -2.3, -2.2] as [number,number,number], speed: 0.55, phase: 3.0 },
+  ], [isMobile])
+
+  // Update opacity imperatively
+  useEffect(() => {
+    if (matRef.current) matRef.current.opacity = theme === 'light' ? 0.25 : 0.6
+  }, [theme])
+
   useFrame(({ clock }) => {
     if (!meshRef.current) return
     const t = clock.getElapsedTime()
@@ -154,224 +191,252 @@ function FloatingHexagons() {
     })
     meshRef.current.instanceMatrix.needsUpdate = true
   })
+
+  const colors = useMemo(() => {
+    const pal = ['#ff6b6b','#4ecdc4','#a855f7','#ffd93d','#60a5fa','#4ecdc4']
+    const arr = new Float32Array(HEX.length * 3)
+    const c = new THREE.Color()
+    HEX.forEach((_, i) => { c.set(pal[i % pal.length]); arr[i*3]=c.r; arr[i*3+1]=c.g; arr[i*3+2]=c.b })
+    return arr
+  }, [HEX])
+
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, HEX.length]} frustumCulled={false}>
       <cylinderGeometry args={[1, 1, 0.15, 6, 1]} />
-      <meshBasicMaterial vertexColors wireframe transparent opacity={0.6} />
+      <meshBasicMaterial ref={matRef} vertexColors wireframe transparent opacity={0.6} />
       <bufferAttribute attach="geometry-attributes-color" array={colors} count={HEX.length} itemSize={3} />
     </instancedMesh>
   )
 }
 
-// ─── 3D: Star dust ───────────────────────────────────────────────
-function StarDust() {
-  const ref = useRef<THREE.Points>(null)
+function StarDust({ isMobile }: { isMobile: boolean }) {
+  const { theme } = useTheme()
+  const ref    = useRef<THREE.Points>(null)
+  const matRef = useRef<THREE.PointsMaterial>(null)
+
   const pos = useMemo(() => {
-    const arr = new Float32Array(300 * 3)
-    for (let i = 0; i < 300; i++) {
+    const count = isMobile ? 150 : 300
+    const arr = new Float32Array(count * 3)
+    for (let i = 0; i < count; i++) {
       arr[i*3]   = (Math.random()-0.5)*10
       arr[i*3+1] = (Math.random()-0.5)*8
       arr[i*3+2] = (Math.random()-0.5)*6 - 2
     }
     return arr
-  }, [])
+  }, [isMobile])
+
+  // Update color imperatively
+  useEffect(() => {
+    if (matRef.current) {
+      matRef.current.color.set(theme === 'light' ? '#6366f1' : '#ffffff')
+      matRef.current.opacity = theme === 'light' ? 0.12 : 0.2
+    }
+  }, [theme])
+
   useFrame(({ clock }) => { if (ref.current) ref.current.rotation.y = clock.getElapsedTime() * 0.015 })
+
   return (
     <points ref={ref} frustumCulled={false}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" array={pos} count={300} itemSize={3} />
+        <bufferAttribute attach="attributes-position" array={pos} count={pos.length / 3} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial size={0.012} color="#ffffff" transparent opacity={0.2} depthWrite={false} />
+      <pointsMaterial ref={matRef} size={0.012} color="#ffffff" transparent opacity={0.2} depthWrite={false} />
     </points>
   )
 }
 
-// ─── HERO SECTION ────────────────────────────────────────────────
+// Memoize the entire Canvas so it never re-renders when Hero's theme state changes
+const Scene = memo(function Scene({ isMobile }: { isMobile: boolean }) {
+  return (
+    <Canvas
+      dpr={isMobile ? 1 : (typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 1.5) : 1)}
+      frameloop="always"
+      gl={{ antialias: false, powerPreference: isMobile ? 'low-power' : 'high-performance', stencil: false, alpha: true }}
+    >
+      <PerspectiveCamera makeDefault position={[0, 0, 6]} fov={55} />
+      <OrbitControls
+        enableZoom={false} enablePan={false}
+        autoRotate autoRotateSpeed={isMobile ? 0.2 : 0.3}
+        enableDamping dampingFactor={0.05}
+        minPolarAngle={Math.PI * 0.35} maxPolarAngle={Math.PI * 0.65}
+        enabled={!isMobile}
+      />
+      <StarDust isMobile={isMobile} />
+      <OrbitRings isMobile={isMobile} />
+      <HoloCore />
+      <FloatingHexagons isMobile={isMobile} />
+    </Canvas>
+  )
+})
+
 export default function Hero() {
+  const { theme } = useTheme()
   const badgeRef    = useRef<HTMLDivElement>(null)
   const titleRef    = useRef<HTMLHeadingElement>(null)
   const subtitleRef = useRef<HTMLParagraphElement>(null)
   const techRef     = useRef<HTMLParagraphElement>(null)
   const btnRef      = useRef<HTMLDivElement>(null)
   const statsRef    = useRef<HTMLDivElement>(null)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    gsap.set(badgeRef.current,    { opacity: 0, y: 24 })
-    gsap.set(titleRef.current,    { opacity: 0, y: 40 })
-    gsap.set(subtitleRef.current, { opacity: 0, y: 24 })
-    gsap.set(techRef.current,     { opacity: 0, y: 16 })
-    gsap.set(btnRef.current,      { opacity: 0, y: 16 })
-    gsap.set(statsRef.current,    { opacity: 0, y: 12 })
+    setIsMobile(window.innerWidth < 768)
+    const handleResize = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
-    const tl = gsap.timeline({ delay: 2.0 })
+  useEffect(() => {
+    gsap.set([badgeRef.current, titleRef.current, subtitleRef.current, techRef.current, btnRef.current, statsRef.current], { opacity: 0 })
+    const tl = gsap.timeline({ delay: isMobile ? 1.5 : 2.0 })
     tl.to(badgeRef.current,    { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' })
       .to(titleRef.current,    { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, '-=0.3')
       .to(subtitleRef.current, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.5')
       .to(techRef.current,     { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, '-=0.4')
       .to(btnRef.current,      { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, '-=0.3')
       .to(statsRef.current,    { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, '-=0.3')
-  }, [])
+  }, [isMobile])
 
   const scrollTo = (id: string) => {
     const el = document.querySelector(id)
     if (el) gsap.to(window, { duration: 1, scrollTo: { y: el, offsetY: 72 }, ease: 'power3.inOut' })
   }
 
-  return (
-    <section id="hero" className="relative h-screen w-full overflow-hidden" style={{ backgroundColor: '#0a0a0a' }}>
+  const bgColor     = theme === 'light' ? '#f5f5f5' : '#0a0a0a'
+  const vignetteRgb = theme === 'light' ? '245,245,245' : '10,10,10'
+  const vignetteStart  = theme === 'light' ? 0.0  : 0.1
+  const vignetteMiddle = theme === 'light' ? 0.65 : 0.55
+  const vignetteEnd    = theme === 'light' ? 0.97 : 0.92
 
-      {/* ── Layer 0: 3D Canvas ──────────────────────────────── */}
+  return (
+    <section id="hero" className="relative w-full overflow-hidden"
+      style={{
+        backgroundColor: bgColor,
+        height: isMobile ? '100svh' : '100vh',
+        minHeight: isMobile ? '100svh' : '100vh',
+      }}>
+
+      {/* 3D Canvas — memoized, never remounts on theme change */}
       <div className="absolute inset-0 z-0">
-        <Canvas
-          dpr={typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 1.5) : 1}
-          frameloop="always"
-          gl={{ antialias: false, powerPreference: 'high-performance', stencil: false, alpha: false }}
-        >
-          <PerspectiveCamera makeDefault position={[0, 0, 6]} fov={55} />
-          <OrbitControls
-            enableZoom={false} enablePan={false}
-            autoRotate autoRotateSpeed={0.3}
-            enableDamping dampingFactor={0.05}
-            minPolarAngle={Math.PI * 0.35} maxPolarAngle={Math.PI * 0.65}
-          />
-          <StarDust />
-          <OrbitRings />
-          <HoloCore />
-          <FloatingHexagons />
-        </Canvas>
+        <Scene isMobile={isMobile} />
       </div>
 
-      {/* ── Layer 1: Dark radial vignette ───────────────────── */}
+      {/* Vignette */}
       <div className="absolute inset-0 z-10 pointer-events-none" style={{
-        background: 'radial-gradient(ellipse 70% 80% at 50% 50%, rgba(10,10,10,0.1) 0%, rgba(10,10,10,0.55) 55%, rgba(10,10,10,0.92) 100%)'
+        background: `radial-gradient(ellipse 70% 80% at 50% 50%, rgba(${vignetteRgb},${vignetteStart}) 0%, rgba(${vignetteRgb},${vignetteMiddle}) 55%, rgba(${vignetteRgb},${vignetteEnd}) 100%)`
       }} />
+      <div className="absolute bottom-0 left-0 right-0 h-52 z-10 pointer-events-none"
+        style={{ background: `linear-gradient(to bottom, transparent, ${bgColor})` }} />
+      <div className="absolute top-0 left-0 right-0 h-32 z-10 pointer-events-none"
+        style={{ background: `linear-gradient(to bottom, ${bgColor}CC, transparent)` }} />
 
-      {/* ── Layer 2: Bottom fade ────────────────────────────── */}
-      <div className="absolute bottom-0 left-0 right-0 h-52 z-10 pointer-events-none" style={{
-        background: 'linear-gradient(to bottom, transparent, #0a0a0a)'
-      }} />
+      {theme === 'light' && (
+        <>
+          <div className="absolute inset-y-0 left-0 w-48 z-10 pointer-events-none"
+            style={{ background: `linear-gradient(to right, ${bgColor}, transparent)` }} />
+          <div className="absolute inset-y-0 right-0 w-48 z-10 pointer-events-none"
+            style={{ background: `linear-gradient(to left, ${bgColor}, transparent)` }} />
+        </>
+      )}
 
-      {/* ── Layer 3: Top fade for nav ───────────────────────── */}
-      <div className="absolute top-0 left-0 right-0 h-32 z-10 pointer-events-none" style={{
-        background: 'linear-gradient(to bottom, rgba(10,10,10,0.8), transparent)'
-      }} />
-
-      {/* ── Layer 4: TEXT CONTENT — highest z-index ─────────── */}
+      {/* Content */}
       <div className="absolute inset-0 z-30 flex items-center justify-center">
-        <div className="w-full max-w-4xl mx-auto px-6 text-center">
+        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 text-center">
 
-          {/* Badge */}
-          <div ref={badgeRef} className="mb-7">
-            <span className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-white/10"
-              style={{ backgroundColor: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' }}>
+          <div ref={badgeRef} className={isMobile ? 'mb-5' : 'mb-7'}>
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm"
+              style={{
+                backgroundColor: theme === 'light' ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)',
+                border: `1px solid ${theme === 'light' ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.10)'}`,
+                backdropFilter: 'blur(16px)',
+              }}>
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
               </span>
-              <span className="text-white/80 text-sm font-mono">Open to Jobs &amp; Internships</span>
+              <span className="font-mono" style={{ color: 'var(--text-secondary)' }}>Open to Jobs &amp; Internships</span>
             </span>
           </div>
 
-          {/* Name — no inline transform, GSAP handles it */}
-          <h1 ref={titleRef}
-            className="font-heading font-bold mb-4"
+          <h1 ref={titleRef} className="font-heading font-bold mb-3 sm:mb-4"
             style={{
-              fontSize: 'clamp(3.2rem, 9vw, 6.5rem)',
+              fontSize: isMobile ? 'clamp(2.8rem, 12vw, 4.5rem)' : 'clamp(3.2rem, 9vw, 6.5rem)',
               lineHeight: 1.05,
-              textShadow: '0 2px 40px rgba(0,0,0,1), 0 0 80px rgba(0,0,0,0.9)',
+              color: 'var(--text-primary)',
             }}>
-            <span style={{ color: '#ffffff' }}>Ajay </span>
+            <span>Ajay </span>
             <span style={{
               background: 'linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 50%, #a855f7 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
             }}>Patil</span>
           </h1>
 
-          {/* Role */}
-          <p ref={subtitleRef}
-            className="font-mono font-semibold mb-3"
+          <p ref={subtitleRef} className="font-mono font-semibold mb-2 sm:mb-3"
             style={{
-              fontSize: 'clamp(1rem, 2.8vw, 1.4rem)',
-              color: 'rgba(255,255,255,0.85)',
-              textShadow: '0 2px 20px rgba(0,0,0,1)',
+              fontSize: isMobile ? 'clamp(0.9rem, 4vw, 1.1rem)' : 'clamp(1rem, 2.8vw, 1.4rem)',
+              color: 'var(--text-secondary)',
               letterSpacing: '0.02em',
             }}>
             Full Stack Developer
           </p>
 
-          {/* Tech stack */}
-          <p ref={techRef}
-            className="mb-9"
-            style={{
-              color: 'rgba(255,255,255,0.5)',
-              fontSize: '0.85rem',
-              textShadow: '0 1px 10px rgba(0,0,0,1)',
-              letterSpacing: '0.08em',
-            }}>
-            Java &nbsp;·&nbsp; Spring Boot &nbsp;·&nbsp; React &nbsp;·&nbsp; Next.js &nbsp;·&nbsp; Docker &nbsp;·&nbsp; Cloud
+          <p ref={techRef} className="mb-6 sm:mb-9"
+            style={{ color: 'var(--text-muted)', fontSize: isMobile ? '0.7rem' : '0.85rem', letterSpacing: '0.08em' }}>
+            Java · Spring Boot · React · Next.js · Docker · Cloud
           </p>
 
-          {/* Buttons */}
-          <div ref={btnRef} className="flex flex-col sm:flex-row gap-4 justify-center">
-            <motion.button
-              onClick={() => scrollTo('#projects')}
-              className="relative px-8 py-4 text-white rounded-full text-base font-bold overflow-hidden cursor-hover"
+          <div ref={btnRef} className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
+            <motion.button onClick={() => scrollTo('#projects')}
+              className="relative px-6 sm:px-8 py-3 sm:py-4 text-white rounded-full text-sm sm:text-base font-bold overflow-hidden cursor-hover"
               style={{ background: 'linear-gradient(135deg, #ff6b6b, #a855f7)', boxShadow: '0 0 30px rgba(255,107,107,0.35)' }}
-              whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.95 }}>
+              whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
               <motion.span className="absolute inset-0 bg-white/25"
                 initial={{ x: '-100%', skewX: -15 }} whileHover={{ x: '200%' }}
                 transition={{ duration: 0.45 }} />
               <span className="relative">View Projects →</span>
             </motion.button>
 
-            <motion.button
-              onClick={() => scrollTo('#contact')}
-              className="px-8 py-4 rounded-full text-base font-bold cursor-hover"
+            <motion.button onClick={() => scrollTo('#contact')}
+              className="px-6 sm:px-8 py-3 sm:py-4 rounded-full text-sm sm:text-base font-bold cursor-hover"
               style={{
-                border: '1.5px solid rgba(255,255,255,0.22)',
-                color: '#ffffff',
+                border: `1.5px solid ${theme === 'light' ? 'rgba(0,0,0,0.22)' : 'rgba(255,255,255,0.22)'}`,
+                color: 'var(--text-primary)',
                 backdropFilter: 'blur(12px)',
-                backgroundColor: 'rgba(255,255,255,0.06)',
+                backgroundColor: theme === 'light' ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)',
               }}
-              whileHover={{ scale: 1.06, borderColor: 'rgba(255,255,255,0.5)', backgroundColor: 'rgba(255,255,255,0.12)' }}
-              whileTap={{ scale: 0.95 }}>
+              whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
               Get in Touch
             </motion.button>
           </div>
 
-          {/* Stats */}
-          <div ref={statsRef} className="flex items-center justify-center gap-10 mt-12">
+          <div ref={statsRef} className={`flex items-center justify-center ${isMobile ? 'gap-6 mt-8' : 'gap-10 mt-12'}`}>
             {[
-              { value: '2',   label: 'Projects Built' },
+              { value: '2',   label: 'Projects' },
               { value: 'BCA', label: '3rd Year' },
-              { value: '8+',  label: 'Technologies' },
+              { value: '8+',  label: 'Tech Stack' },
             ].map((s) => (
               <div key={s.label} className="text-center">
-                <div className="font-heading font-bold text-2xl" style={{
+                <div className={`font-heading font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`} style={{
                   background: 'linear-gradient(135deg, #ff6b6b, #4ecdc4)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  textShadow: 'none',
+                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
                 }}>{s.value}</div>
-                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.72rem', fontFamily: 'monospace', marginTop: 3 }}>{s.label}</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: isMobile ? '0.65rem' : '0.72rem', fontFamily: 'monospace', marginTop: 3 }}>
+                  {s.label}
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* ── Layer 5: Scroll indicator ───────────────────────── */}
-      <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2"
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 4.0 }}>
-        <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.6rem', letterSpacing: '0.3em', fontFamily: 'monospace' }}>SCROLL</span>
-        <motion.div className="w-px h-8" style={{ background: 'linear-gradient(to bottom, #ff6b6b, transparent)' }}
-          animate={{ scaleY: [0, 1, 0] }} transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }} />
-      </motion.div>
-
+      {!isMobile && (
+        <motion.div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 4.0 }}>
+          <span style={{ color: 'var(--text-faint)', fontSize: '0.6rem', letterSpacing: '0.3em', fontFamily: 'monospace' }}>SCROLL</span>
+          <motion.div className="w-px h-8" style={{ background: 'linear-gradient(to bottom, #ff6b6b, transparent)' }}
+            animate={{ scaleY: [0, 1, 0] }} transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }} />
+        </motion.div>
+      )}
     </section>
   )
 }

@@ -4,12 +4,20 @@ import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-const COUNT   = 60
-const PALETTE = ['#ff6b6b', '#4ecdc4', '#a855f7', '#ffd93d', '#60a5fa']
+const COUNT = 60
 
-export default function GeometricBackground() {
+interface Props {
+  theme?: 'dark' | 'light'
+}
+
+export default function GeometricBackground({ theme = 'dark' }: Props) {
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const dummy   = useMemo(() => new THREE.Object3D(), [])
+
+  // Darker, more saturated palette in light mode so shapes are visible
+  const PALETTE = theme === 'light'
+    ? ['#dc2626', '#0e9488', '#7c3aed', '#d97706', '#2563eb']
+    : ['#ff6b6b', '#4ecdc4', '#a855f7', '#ffd93d', '#60a5fa']
 
   const data = useMemo(() => {
     const arr = []
@@ -39,7 +47,11 @@ export default function GeometricBackground() {
       colors[i * 3 + 2] = c.b
     }
     return colors
-  }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [theme])
+
+  // Slightly more opaque in light mode so shapes are visible against light bg
+  const opacity = theme === 'light' ? 0.75 : 0.55
 
   useFrame(({ clock }) => {
     if (!meshRef.current) return
@@ -64,7 +76,7 @@ export default function GeometricBackground() {
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
       <octahedronGeometry args={[1, 0]} />
-      <meshBasicMaterial vertexColors transparent opacity={0.55} />
+      <meshBasicMaterial vertexColors transparent opacity={opacity} />
       <bufferAttribute attach="geometry-attributes-color" array={colorAttr} count={COUNT} itemSize={3} />
     </instancedMesh>
   )

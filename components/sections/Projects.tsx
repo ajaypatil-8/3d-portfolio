@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useTheme } from '@/components/providers/ThemeProvider'
 
 const projects = [
   {
@@ -20,7 +21,6 @@ const projects = [
     status: 'completed',
     statusLabel: '✅ Completed & Working',
     color: '#4ecdc4',
-    gradient: 'from-[#4ecdc4]/20 to-[#0f172a]',
     icon: '🏆',
     github: 'https://github.com/ajaypatil-8/College-Major-Project-php-',
     demo: 'https://crowdspark-x.infinityfreeapp.com',
@@ -42,7 +42,6 @@ const projects = [
     status: 'in-progress',
     statusLabel: '🚀 In Progress — Actively Building',
     color: '#ff6b6b',
-    gradient: 'from-[#ff6b6b]/20 to-[#0f172a]',
     icon: '🚀',
     github: 'https://github.com/ajaypatil-8/Crowdspark-Backend',
     demo: null,
@@ -68,11 +67,12 @@ const GithubIcon = () => (
 )
 
 export default function Projects() {
+  const { theme } = useTheme()
+
   return (
     <section id="projects" className="relative min-h-screen py-24 overflow-hidden"
-      style={{ backgroundColor: '#111111' }}>
+      style={{ backgroundColor: 'var(--bg-secondary)' }}>
 
-      {/* CSS blobs */}
       <div className="absolute top-20 left-0 w-80 h-80 rounded-full blur-[120px] pointer-events-none"
         style={{ backgroundColor: 'rgba(78,205,196,0.05)' }} />
       <div className="absolute bottom-20 right-0 w-96 h-96 rounded-full blur-[140px] pointer-events-none"
@@ -87,14 +87,14 @@ export default function Projects() {
             What I've built
           </p>
           <h2 className="font-heading font-bold mb-4"
-            style={{ fontSize: 'clamp(2.2rem, 5vw, 3.5rem)', color: '#ffffff' }}>
+            style={{ fontSize: 'clamp(2.2rem, 5vw, 3.5rem)', color: 'var(--text-primary)' }}>
             Featured{' '}
             <span style={{
               background: 'linear-gradient(135deg, #ff6b6b, #4ecdc4, #a855f7)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
             }}>Projects</span>
           </h2>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.88rem', maxWidth: 480, margin: '0 auto' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', maxWidth: 480, margin: '0 auto' }}>
             Real projects — not tutorial clones. Built to solve real problems with production-level thinking.
           </p>
         </motion.div>
@@ -102,11 +102,10 @@ export default function Projects() {
         {/* Project cards */}
         <div className="space-y-8">
           {projects.map((project, index) => (
-            <motion.div
-              key={project.id}
+            <motion.div key={project.id}
               className="rounded-3xl overflow-hidden"
               style={{
-                backgroundColor: 'rgba(255,255,255,0.03)',
+                backgroundColor: 'var(--bg-card)',
                 border: `1px solid ${project.color}20`,
                 backdropFilter: 'blur(12px)',
               }}
@@ -125,23 +124,21 @@ export default function Projects() {
                       <span className="text-3xl">{project.icon}</span>
                       <StatusBadge status={project.status} label={project.statusLabel} />
                     </div>
-
-                    <h3 className="font-heading font-bold text-white mb-1"
-                      style={{ fontSize: 'clamp(1.4rem, 3vw, 1.8rem)' }}>
+                    <h3 className="font-heading font-bold mb-1"
+                      style={{ fontSize: 'clamp(1.4rem, 3vw, 1.8rem)', color: 'var(--text-primary)' }}>
                       {project.title}
                     </h3>
                     <p className="text-sm font-mono mb-4" style={{ color: project.color }}>
                       {project.subtitle}
                     </p>
-                    <p className="leading-relaxed text-sm mb-6" style={{ color: 'rgba(255,255,255,0.58)' }}>
+                    <p className="leading-relaxed text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
                       {project.description}
                     </p>
 
                     {/* Tech tags */}
                     <div className="flex flex-wrap gap-2 mb-6">
                       {project.tech.map((t) => (
-                        <span key={t}
-                          className="px-3 py-1 rounded-full text-xs font-mono"
+                        <span key={t} className="px-3 py-1 rounded-full text-xs font-mono"
                           style={{
                             border: `1px solid ${project.color}35`,
                             color: project.color,
@@ -152,34 +149,27 @@ export default function Projects() {
                       ))}
                     </div>
 
-                    {/* ✅ Buttons — open in NEW TAB */}
                     <div className="flex flex-wrap gap-3">
-                      <motion.a
-                        href={project.github}
-                        target="_blank"          // ← opens new tab
-                        rel="noopener noreferrer" // ← security best practice
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white transition-colors"
-                        style={{ backgroundColor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
-                        whileHover={{ scale: 1.04, backgroundColor: 'rgba(255,255,255,0.14)' }}
-                        whileTap={{ scale: 0.96 }}
-                      >
+                      <motion.a href={project.github} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold"
+                        style={{
+                          color: 'var(--text-primary)',
+                          backgroundColor: 'var(--bg-card-hover)',
+                          border: '1px solid var(--border-strong)',
+                        }}
+                        whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
                         <GithubIcon />
                         GitHub ↗
                       </motion.a>
-
                       {project.demo && (
-                        <motion.a
-                          href={project.demo}
-                          target="_blank"          // ← opens new tab
-                          rel="noopener noreferrer" // ← security best practice
-                          className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white"
+                        <motion.a href={project.demo} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold"
                           style={{
-                            backgroundColor: `${project.color}20`,
-                            border: `1px solid ${project.color}45`,
+                            color: project.color,
+                            backgroundColor: `${project.color}15`,
+                            border: `1px solid ${project.color}40`,
                           }}
-                          whileHover={{ scale: 1.04, backgroundColor: `${project.color}30` }}
-                          whileTap={{ scale: 0.96 }}
-                        >
+                          whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
                           Live Demo ↗
                         </motion.a>
                       )}
@@ -188,22 +178,18 @@ export default function Projects() {
 
                   {/* Right — highlights */}
                   <div className="rounded-2xl p-6"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                    <p className="text-xs font-mono uppercase tracking-widest mb-4"
-                      style={{ color: 'rgba(255,255,255,0.35)' }}>
+                    style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                    <p className="text-xs font-mono uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>
                       Key Features
                     </p>
                     <ul className="space-y-3">
                       {project.highlights.map((h, i) => (
-                        <motion.li
-                          key={i}
-                          className="flex items-start gap-3 text-sm"
-                          style={{ color: 'rgba(255,255,255,0.65)' }}
+                        <motion.li key={i} className="flex items-start gap-3 text-sm"
+                          style={{ color: 'var(--text-secondary)' }}
                           initial={{ opacity: 0, x: 20 }}
                           whileInView={{ opacity: 1, x: 0 }}
                           viewport={{ once: true }}
-                          transition={{ delay: index * 0.1 + i * 0.07 }}
-                        >
+                          transition={{ delay: index * 0.1 + i * 0.07 }}>
                           <span className="mt-0.5 w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold"
                             style={{ backgroundColor: `${project.color}20`, color: project.color }}>
                             ✓
@@ -213,25 +199,19 @@ export default function Projects() {
                       ))}
                     </ul>
 
-                    {/* Progress for in-progress */}
                     {project.status === 'in-progress' && (
-                      <div className="mt-6 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                      <div className="mt-6 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
                         <div className="flex justify-between mb-2">
-                          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                            Development Progress
-                          </span>
+                          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Development Progress</span>
                           <span className="text-xs font-mono" style={{ color: '#fbbf24' }}>~55%</span>
                         </div>
-                        <div className="h-1.5 rounded-full overflow-hidden"
-                          style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}>
-                          <motion.div
-                            className="h-full rounded-full"
+                        <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border)' }}>
+                          <motion.div className="h-full rounded-full"
                             style={{ background: 'linear-gradient(90deg, #f59e0b, #f97316)' }}
                             initial={{ width: 0 }}
                             whileInView={{ width: '55%' }}
                             viewport={{ once: true }}
-                            transition={{ duration: 1, ease: 'easeOut' }}
-                          />
+                            transition={{ duration: 1, ease: 'easeOut' }} />
                         </div>
                       </div>
                     )}
@@ -245,21 +225,17 @@ export default function Projects() {
         {/* GitHub CTA */}
         <motion.div className="text-center mt-14"
           initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
-          <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
             More projects coming soon — actively building!
           </p>
-          <motion.a
-            href="https://github.com/ajaypatil-8"
-            target="_blank"           // ← new tab
-            rel="noopener noreferrer"  // ← security
+          <motion.a href="https://github.com/ajaypatil-8" target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm"
             style={{
-              border: '1px solid rgba(255,255,255,0.15)',
-              color: 'rgba(255,255,255,0.6)',
+              border: '1px solid var(--border-strong)',
+              color: 'var(--text-secondary)',
               backdropFilter: 'blur(8px)',
             }}
-            whileHover={{ scale: 1.04, borderColor: 'rgba(255,255,255,0.35)', color: '#ffffff' }}
-          >
+            whileHover={{ scale: 1.04, color: 'var(--text-primary)' }}>
             <GithubIcon />
             View GitHub Profile ↗
           </motion.a>

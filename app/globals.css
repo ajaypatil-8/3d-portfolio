@@ -11,25 +11,81 @@
 }
 
 html {
-  scroll-behavior: auto; /* Lenis handles smoothness — no conflict */
+  scroll-behavior: auto;
 }
 
+/* ── Theme CSS Variables ─────────────────────────────────────────── */
+:root {
+  --bg-primary:     #0a0a0a;
+  --bg-secondary:   #0d0d0d;
+  --bg-card:        rgba(255,255,255,0.03);
+  --bg-card-hover:  rgba(255,255,255,0.06);
+  --text-primary:   #ffffff;
+  --text-secondary: rgba(255,255,255,0.6);
+  --text-muted:     rgba(255,255,255,0.4);
+  --text-faint:     rgba(255,255,255,0.25);
+  --border:         rgba(255,255,255,0.08);
+  --border-strong:  rgba(255,255,255,0.15);
+  --accent:         #4ecdc4;
+  --nav-bg:         rgba(10,10,10,0.80);
+  --footer-bg:      #080808;
+  --footer-border:  rgba(255,255,255,0.06);
+  --glass-bg:       rgba(255,255,255,0.05);
+  --glass-border:   rgba(255,255,255,0.08);
+  --scrollbar-bg:   #111;
+}
+
+[data-theme='light'] {
+  --bg-primary:     #f5f5f5;
+  --bg-secondary:   #ebebeb;
+  --bg-card:        rgba(0,0,0,0.04);
+  --bg-card-hover:  rgba(0,0,0,0.07);
+  --text-primary:   #111111;
+  --text-secondary: rgba(0,0,0,0.6);
+  --text-muted:     rgba(0,0,0,0.45);
+  --text-faint:     rgba(0,0,0,0.25);
+  --border:         rgba(0,0,0,0.08);
+  --border-strong:  rgba(0,0,0,0.15);
+  --accent:         #0ea5e9;
+  --nav-bg:         rgba(245,245,245,0.85);
+  --footer-bg:      #e8e8e8;
+  --footer-border:  rgba(0,0,0,0.07);
+  --glass-bg:       rgba(0,0,0,0.04);
+  --glass-border:   rgba(0,0,0,0.08);
+  --scrollbar-bg:   #ddd;
+}
+
+/* ── Base ────────────────────────────────────────────────────────── */
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #0a0a0a;
-  color: #ffffff;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   overflow-x: hidden;
-  /* GPU compositing for the whole page */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Thin custom scrollbar */
+section {
+  background-color: var(--bg-primary);
+  transition: background-color 0.3s ease;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #111; }
+::-webkit-scrollbar-track { background: var(--scrollbar-bg); }
 ::-webkit-scrollbar-thumb { background: #ff6b6b; border-radius: 3px; }
 
-/* ── Gradient text ─────────────────────────────────────────── */
+/* ── Glass ───────────────────────────────────────────────────────── */
+.glass {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border) !important;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+/* ── Gradient text ───────────────────────────────────────────────── */
 .gradient-text {
   background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 50%, #a855f7 100%);
   -webkit-background-clip: text;
@@ -37,22 +93,10 @@ body {
   background-clip: text;
 }
 
-/* ── Glass morphism — only blur where really needed ─────────── */
-.glass {
-  background: rgba(255, 255, 255, 0.05);
-  /* Use backdrop-filter sparingly — it's expensive */
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
+/* ── Skill bars ──────────────────────────────────────────────────── */
+.skill-bar { will-change: width; }
 
-/* ── Skill bars ─────────────────────────────────────────────── */
-.skill-bar {
-  /* GPU-composited property only */
-  will-change: width;
-}
-
-/* ── Custom cursor ──────────────────────────────────────────── */
+/* ── Custom cursor ───────────────────────────────────────────────── */
 .custom-cursor,
 .custom-cursor-follower {
   will-change: transform;
@@ -63,7 +107,7 @@ body {
   border-radius: 50%;
 }
 
-/* ── Animations — use transform/opacity only (GPU layer) ─────── */
+/* ── Animations ──────────────────────────────────────────────────── */
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-16px); }
@@ -76,9 +120,16 @@ body {
 .animate-float      { animation: float 6s ease-in-out infinite; }
 .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
 
-/* ── Utilities ───────────────────────────────────────────────── */
+/* ── Utilities ───────────────────────────────────────────────────── */
 @layer utilities {
   .perspective-1000 { perspective: 1000px; }
   .preserve-3d      { transform-style: preserve-3d; }
   .backface-hidden  { backface-visibility: hidden; }
+}
+
+/* ── Smooth transitions on interactive elements ──────────────────── */
+a, button, span, p, h1, h2, h3, h4, div {
+  transition-property: color, background-color, border-color, opacity;
+  transition-duration: 0.25s;
+  transition-timing-function: ease;
 }
