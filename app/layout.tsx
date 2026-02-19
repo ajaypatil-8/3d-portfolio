@@ -10,6 +10,9 @@ const inter = Inter({ subsets: ['latin'], display: 'swap' })
 export const metadata: Metadata = {
   title: 'Ajay Patil | Java Backend & Full Stack Developer',
   description: 'BCA student specializing in Java, Spring Boot, React, and Next.js. Building production-ready applications with modern tech stack.',
+icons: {
+    icon: "/favicon.png",
+  }
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
