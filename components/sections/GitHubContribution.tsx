@@ -25,8 +25,6 @@ function getLevel(count: number): 0 | 1 | 2 | 3 | 4 {
   return 4
 }
 
-// FIX: always use backgroundImage + WebkitBackgroundClip, never the 'background' shorthand
-// The 'background' shorthand conflicts with backgroundClip and causes React warnings
 function GradientText({ children, from, to }: { children: React.ReactNode; from: string; to: string }) {
   return (
     <span style={{

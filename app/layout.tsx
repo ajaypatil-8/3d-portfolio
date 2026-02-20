@@ -19,7 +19,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Runs before React hydration — sets theme instantly with zero flash */}
         <script
           dangerouslySetInnerHTML={{
             __html: `

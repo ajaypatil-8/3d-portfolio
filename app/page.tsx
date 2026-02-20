@@ -8,7 +8,7 @@ import Footer from '@/components/ui/Footer'
 import GitHubContributions from '@/components/sections/GitHubContribution'
 
 
-// Lazy-load every heavy section so they don't all parse+render at once
+
 const Hero       = dynamic(() => import('@/components/sections/Hero'),       { ssr: false })
 const About      = dynamic(() => import('@/components/sections/About'),      { ssr: false })
 const Projects   = dynamic(() => import('@/components/sections/Projects'),   { ssr: false })
@@ -21,7 +21,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // 2.4s matches the new faster loading screen
     const t = setTimeout(() => setLoading(false), 2400)
     return () => clearTimeout(t)
   }, [])

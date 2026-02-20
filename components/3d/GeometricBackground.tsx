@@ -14,7 +14,7 @@ export default function GeometricBackground({ theme = 'dark' }: Props) {
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const dummy   = useMemo(() => new THREE.Object3D(), [])
 
-  // Darker, more saturated palette in light mode so shapes are visible
+
   const PALETTE = theme === 'light'
     ? ['#dc2626', '#0e9488', '#7c3aed', '#d97706', '#2563eb']
     : ['#ff6b6b', '#4ecdc4', '#a855f7', '#ffd93d', '#60a5fa']
@@ -47,10 +47,9 @@ export default function GeometricBackground({ theme = 'dark' }: Props) {
       colors[i * 3 + 2] = c.b
     }
     return colors
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme])
 
-  // Slightly more opaque in light mode so shapes are visible against light bg
+
   const opacity = theme === 'light' ? 0.75 : 0.55
 
   useFrame(({ clock }) => {

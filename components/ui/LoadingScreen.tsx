@@ -14,7 +14,7 @@ export default function LoadingScreen() {
 
     tl.to(progressRef.current, {
       width: '100%',
-      duration: 1.8,          // was 2.5 — shaved 700ms
+      duration: 1.8,          
       ease: 'power2.inOut',
       onUpdate() {
         if (percentRef.current) {

@@ -19,15 +19,12 @@ export default function SmoothScrollProvider({ children }: { children: React.Rea
     })
     lenisRef.current = lenis
 
-    // FIX 2: Tell ScrollTrigger to use Lenis's scroll position, not window.scrollY
-    // Without this, ScrollTrigger reads the wrong position during smooth scroll
-    // and animations trigger too early or too late
+  
     lenis.on('scroll', ({ scroll }: { scroll: number }) => {
       ScrollTrigger.update()
     })
 
-    // FIX 3: Sync Lenis scroll position into ScrollTrigger's proxy
-    // so gsap.to(window, { scrollTo }) works correctly with Lenis active
+ 
     ScrollTrigger.scrollerProxy(document.documentElement, {
       scrollTop(value) {
         if (arguments.length && value !== undefined) {
@@ -46,7 +43,7 @@ export default function SmoothScrollProvider({ children }: { children: React.Rea
 
     ScrollTrigger.defaults({ scroller: document.documentElement })
 
-    // RAF loop — correct approach (not gsap.ticker which double-ticks)
+ 
     let rafId: number
     function raf(time: number) {
       lenis.raf(time)

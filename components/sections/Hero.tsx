@@ -25,8 +25,6 @@ function makeOrbit(count: number, radius: number, tilt: number): Float32Array {
   return pos
 }
 
-// ── Each 3D component reads theme itself and updates materials imperatively ──
-
 function OrbitRings({ isMobile }: { isMobile: boolean }) {
   const { theme } = useTheme()
   const r1 = useRef<THREE.Points>(null)
@@ -42,7 +40,6 @@ function OrbitRings({ isMobile }: { isMobile: boolean }) {
   const mat2 = useMemo(() => new THREE.PointsMaterial({ size: isMobile ? 0.02  : 0.022, sizeAttenuation: true, transparent: true, depthWrite: false }), [isMobile])
   const mat3 = useMemo(() => new THREE.PointsMaterial({ size: isMobile ? 0.016 : 0.018, sizeAttenuation: true, transparent: true, depthWrite: false }), [isMobile])
 
-  // Update material colors imperatively when theme changes — no remount
   useEffect(() => {
     const light = theme === 'light'
     mat1.color.set(light ? '#7c3aed' : '#a78bfa'); mat1.opacity = light ? 0.6 : 0.9
@@ -78,7 +75,7 @@ function HoloCore() {
   const innerRef = useRef<THREE.Mesh>(null)
   const innerMatRef = useRef<THREE.MeshBasicMaterial>(null)
 
-  // Create shader material once — update uniforms imperatively
+ 
   const holoMat = useMemo(() => new THREE.ShaderMaterial({
     uniforms: {
       uTime:    { value: 0 },
@@ -122,7 +119,7 @@ function HoloCore() {
     color: '#4ecdc4', wireframe: true, transparent: true, opacity: 0.18,
   }), [])
 
-  // Update uniforms/material imperatively — zero remounting
+ 
   useEffect(() => {
     const light = theme === 'light'
     holoMat.uniforms.uColorA.value.set(light ? '#0e9488' : '#4ecdc4')
@@ -174,7 +171,7 @@ function FloatingHexagons({ isMobile }: { isMobile: boolean }) {
     { pos: [ 1.0, -2.3, -2.2] as [number,number,number], speed: 0.55, phase: 3.0 },
   ], [isMobile])
 
-  // Update opacity imperatively
+
   useEffect(() => {
     if (matRef.current) matRef.current.opacity = theme === 'light' ? 0.25 : 0.6
   }, [theme])
@@ -225,7 +222,6 @@ function StarDust({ isMobile }: { isMobile: boolean }) {
     return arr
   }, [isMobile])
 
-  // Update color imperatively
   useEffect(() => {
     if (matRef.current) {
       matRef.current.color.set(theme === 'light' ? '#6366f1' : '#ffffff')
@@ -245,7 +241,7 @@ function StarDust({ isMobile }: { isMobile: boolean }) {
   )
 }
 
-// Memoize the entire Canvas so it never re-renders when Hero's theme state changes
+
 const Scene = memo(function Scene({ isMobile }: { isMobile: boolean }) {
   return (
     <Canvas
@@ -316,7 +312,6 @@ export default function Hero() {
         minHeight: isMobile ? '100svh' : '100vh',
       }}>
 
-      {/* 3D Canvas — memoized, never remounts on theme change */}
       <div className="absolute inset-0 z-0">
         <Scene isMobile={isMobile} />
       </div>

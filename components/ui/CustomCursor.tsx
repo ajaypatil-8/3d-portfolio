@@ -72,14 +72,14 @@ export default function CustomCursor() {
       observer.disconnect()
       document.getElementById('hide-cursor')?.remove()
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [])
 
   const isDark  = theme === 'dark'
   const isHover = state === 'hover'
   const isText  = state === 'text'
 
-  // All colors as full rgba() strings — never 'transparent' keyword
+
   const ringBorderColor = isHover
     ? 'rgba(255,107,107,0.8)'
     : isText

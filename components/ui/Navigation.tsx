@@ -35,7 +35,7 @@ export default function Navigation() {
 
   const scrolling = useRef(false)
 
-  // ── Active section detection ─────────────────────────────────────
+
   useEffect(() => {
     const ids = navItems.map(item => item.href.replace('#', ''))
 
@@ -58,27 +58,27 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // ── Navbar background on scroll ──────────────────────────────────
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // ── Lock body scroll when drawer / lightbox open ─────────────────
+
   useEffect(() => {
     document.body.style.overflow = (isOpen || lightboxOpen) ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [isOpen, lightboxOpen])
 
-  // ── Close lightbox on Escape ─────────────────────────────────────
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightboxOpen(false) }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  // ── Smooth scroll to section ─────────────────────────────────────
+
   const handleNavClick = useCallback((href: string) => {
     setIsOpen(false)
     const el = document.querySelector(href)
@@ -181,7 +181,7 @@ export default function Navigation() {
                       )}
                     </AnimatePresence>
 
-                    {/* Active highlight — NO layoutId, just fade in/out */}
+                    {/* Active highlight */}
                     <AnimatePresence>
                       {isActive && (
                         <motion.span

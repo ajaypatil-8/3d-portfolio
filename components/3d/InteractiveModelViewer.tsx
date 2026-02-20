@@ -114,7 +114,6 @@ function PortfolioModel({ theme }: { theme: 'dark' | 'light' }) {
 }
 
 export default function InteractiveModelViewer({ scale = 1, theme = 'dark' }: Props) {
-  // Adjust ambient/directional light intensity for light mode
   const ambientIntensity = theme === 'light' ? 1.2 : 0.4
   const dirIntensity     = theme === 'light' ? 0.6 : 1.2
 
