@@ -38,6 +38,17 @@ function GradientText({ children, from, to }: { children: React.ReactNode; from:
   )
 }
 
+function calcCurrentStreak(days: ContributionDay[]): number {
+  if (!days.length) return 0
+  let streak = 0
+  // Walk backwards — days is already cut off at today so no future empty cells
+  for (let i = days.length - 1; i >= 0; i--) {
+    if (days[i].count > 0) streak++
+    else break
+  }
+  return streak
+}
+
 export default function GitHubContributions() {
   const { theme } = useTheme()
   const COLORS = theme === 'light' ? LIGHT_COLORS : DARK_COLORS
@@ -62,10 +73,13 @@ export default function GitHubContributions() {
         )
       )
 
+      // TODAY — cut off here so future empty cells don't break streak
+      const todayStr = new Date().toISOString().split('T')[0]
+
       const days: ContributionDay[] = results
         .flatMap(data => data.contributions ?? [])
         .map((d: any) => ({ date: d.date, count: d.count, level: getLevel(d.count) }))
-        .filter(d => d.date >= START_FROM)
+        .filter(d => d.date >= START_FROM && d.date <= todayStr) // ← key fix
         .sort((a, b) => a.date.localeCompare(b.date))
 
       if (!days.length) { setError(true); setLoading(false); return }
@@ -77,11 +91,7 @@ export default function GitHubContributions() {
         else temp = 0
       })
 
-      let current = 0
-      for (let i = days.length - 1; i >= 0; i--) {
-        if (days[i].count > 0) current++
-        else break
-      }
+      const current = calcCurrentStreak(days)
 
       setContributions(days)
       setStats({ total, longestStreak: longest, currentStreak: current })
