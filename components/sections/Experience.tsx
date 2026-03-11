@@ -413,7 +413,7 @@ export default function Experience() {
             </p>
 
             <motion.a
-              href="https://mail.google.com/mail/?view=cm&fs=1&to=aj9411979585@gmail.com&su=Project%20Inquiry&body=Hello%20Ajay,%20I%20visited%20your%20portfolio%20and%20want%20to%20connect."
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=ajaypatil8eight@gmail.com&su=Project%20Inquiry&body=Hello%20Ajay,%20I%20visited%20your%20portfolio%20and%20want%20to%20connect."
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-7 py-3 text-white rounded-full font-semibold text-sm cursor-hover"
@@ -425,7 +425,7 @@ export default function Experience() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              Get In Touch — aj9411979585@gmail.com
+              Get In Touch — ajaypatil8eight@gmail.com
             </motion.a>
           </div>
         </motion.div>

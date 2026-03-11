@@ -201,7 +201,7 @@ export default function About() {
             <div className="flex flex-wrap gap-3">
               {/* Mail CTA */}
               <motion.a
-                href="mailto:aj9411979585@gmail.com"
+                href="mailto:ajaypatil8eight@gmail.com"
                 className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-white text-sm"
                 style={{
                   background:  'linear-gradient(135deg, #ff6b6b, #a855f7)',
