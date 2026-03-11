@@ -258,7 +258,7 @@ function ProjectCard({ project, index }: { project: typeof projects[0]; index: n
                   <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                     Development Progress
                   </span>
-                  <span className="text-xs font-mono" style={{ color: '#fbbf24' }}>~55%</span>
+                  <span className="text-xs font-mono" style={{ color: '#fbbf24' }}>~60%</span>
                 </div>
                 <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border)' }}>
                   <motion.div
