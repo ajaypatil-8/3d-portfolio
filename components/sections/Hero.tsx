@@ -8,7 +8,7 @@ import { gsap }              from 'gsap'
 import { ScrollToPlugin }    from 'gsap/dist/ScrollToPlugin'
 import { useTheme }          from '@/components/providers/ThemeProvider'
 import GeometricBackground   from '@/components/3d/GeometricBackground'
-import CentralScene          from '@/components/3d/InteractiveModelViewer'
+import CentralScene          from '@/components/3d/CentralScene'
 
 gsap.registerPlugin(ScrollToPlugin)
 
