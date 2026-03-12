@@ -1,336 +1,186 @@
 'use client'
 
-import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
-import { motion } from 'framer-motion'
-import { useEffect, useRef, useMemo, useState, memo, useCallback } from 'react'
-import { gsap } from 'gsap'
-import { ScrollToPlugin } from 'gsap/dist/ScrollToPlugin'
-import * as THREE from 'three'
-import { useTheme } from '@/components/providers/ThemeProvider'
+import { Canvas }            from '@react-three/fiber'
+import { PerspectiveCamera } from '@react-three/drei'
+import { motion }            from 'framer-motion'
+import { useEffect, useState, useCallback, memo } from 'react'
+import { gsap }              from 'gsap'
+import { ScrollToPlugin }    from 'gsap/dist/ScrollToPlugin'
+import { useTheme }          from '@/components/providers/ThemeProvider'
+import GeometricBackground   from '@/components/3d/GeometricBackground'
+import CentralScene          from '@/components/3d/InteractiveModelViewer'
 
 gsap.registerPlugin(ScrollToPlugin)
 
-/* ─── helpers ─────────────────────────────────────────────────────────── */
-
-function makeOrbit(count: number, radius: number, tilt: number): Float32Array {
-  const pos = new Float32Array(count * 3)
-  for (let i = 0; i < count; i++) {
-    const a = (i / count) * Math.PI * 2
-    const x = Math.cos(a) * radius
-    const z = Math.sin(a) * radius
-    const y = (Math.random() - 0.5) * 0.1
-    pos[i * 3]     = x * Math.cos(tilt)
-    pos[i * 3 + 1] = x * Math.sin(tilt) + y
-    pos[i * 3 + 2] = z
-  }
-  return pos
-}
-
-/* ─── 3-D sub-components (unchanged logic, kept stable) ───────────────── */
-
-function OrbitRings({ isMobile }: { isMobile: boolean }) {
-  const { theme } = useTheme()
-  const r1 = useRef<THREE.Points>(null)
-  const r2 = useRef<THREE.Points>(null)
-  const r3 = useRef<THREE.Points>(null)
-
-  const ring1 = useMemo(() => makeOrbit(isMobile ? 60 : 120, 1.6,  Math.PI * 0.18), [isMobile])
-  const ring2 = useMemo(() => makeOrbit(isMobile ? 45 : 90,  2.2, -Math.PI * 0.28), [isMobile])
-  const ring3 = useMemo(() => makeOrbit(isMobile ? 35 : 70,  2.9,  Math.PI * 0.06), [isMobile])
-
-  const mat1 = useMemo(() => new THREE.PointsMaterial({ size: isMobile ? 0.025 : 0.028, sizeAttenuation: true, transparent: true, depthWrite: false }), [isMobile])
-  const mat2 = useMemo(() => new THREE.PointsMaterial({ size: isMobile ? 0.02  : 0.022, sizeAttenuation: true, transparent: true, depthWrite: false }), [isMobile])
-  const mat3 = useMemo(() => new THREE.PointsMaterial({ size: isMobile ? 0.016 : 0.018, sizeAttenuation: true, transparent: true, depthWrite: false }), [isMobile])
+/* ─── Typewriter ──────────────────────────────────────────────────────────── */
+function Typewriter({ texts, delay = 0 }: { texts: string[]; delay?: number }) {
+  const [display, setDisplay]   = useState('')
+  const [idx, setIdx]           = useState(0)
+  const [charIdx, setCharIdx]   = useState(0)
+  const [deleting, setDeleting] = useState(false)
+  const [started, setStarted]   = useState(false)
 
   useEffect(() => {
-    const light = theme === 'light'
-    mat1.color.set(light ? '#7c3aed' : '#a78bfa'); mat1.opacity = light ? 0.6 : 0.9
-    mat2.color.set(light ? '#0e9488' : '#4ecdc4'); mat2.opacity = light ? 0.5 : 0.7
-    mat3.color.set(light ? '#dc2626' : '#ff6b6b'); mat3.opacity = light ? 0.4 : 0.5
-  }, [theme, mat1, mat2, mat3])
-
-  useFrame(({ clock }) => {
-    const t = clock.getElapsedTime()
-    if (r1.current) r1.current.rotation.y = t * 0.22
-    if (r2.current) r2.current.rotation.y = -t * 0.15
-    if (r3.current) r3.current.rotation.y = t * 0.09
-  })
-
-  return (
-    <group>
-      <points ref={r1} frustumCulled={false} material={mat1}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[ring1, 3]} />
-        </bufferGeometry>
-      </points>
-      <points ref={r2} frustumCulled={false} material={mat2}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[ring2, 3]} />
-        </bufferGeometry>
-      </points>
-      <points ref={r3} frustumCulled={false} material={mat3}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[ring3, 3]} />
-        </bufferGeometry>
-      </points>
-    </group>
-  )
-}
-
-function HoloCore() {
-  const { theme } = useTheme()
-  const outerRef    = useRef<THREE.Mesh>(null)
-  const innerRef    = useRef<THREE.Mesh>(null)
-  const innerMatRef = useRef<THREE.MeshBasicMaterial>(null)
-
-  const holoMat = useMemo(() => new THREE.ShaderMaterial({
-    uniforms: {
-      uTime:    { value: 0 },
-      uColorA:  { value: new THREE.Color('#4ecdc4') },
-      uColorB:  { value: new THREE.Color('#a855f7') },
-      uOpacity: { value: 0.85 },
-    },
-    vertexShader: `
-      uniform float uTime;
-      varying vec3 vPos;
-      varying vec3 vNormal;
-      void main() {
-        vPos    = position;
-        vNormal = normal;
-        float b = 1.0 + sin(uTime * 1.2) * 0.03;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position * b, 1.0);
-      }
-    `,
-    fragmentShader: `
-      uniform float uTime;
-      uniform vec3  uColorA;
-      uniform vec3  uColorB;
-      uniform float uOpacity;
-      varying vec3  vPos;
-      varying vec3  vNormal;
-      void main() {
-        float scan = mod(vPos.y * 3.0 + uTime * 1.5, 2.0);
-        float band = smoothstep(1.8, 2.0, scan) * 0.5 + 0.15;
-        float rim  = 1.0 - abs(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0)));
-        float glow = pow(rim, 1.8) * 0.6;
-        float t    = vPos.y * 0.5 + 0.5;
-        vec3  col  = mix(uColorA, uColorB, clamp(t, 0.0, 1.0));
-        gl_FragColor = vec4(col, clamp((band + glow) * uOpacity, 0.0, uOpacity));
-      }
-    `,
-    transparent: true,
-    depthWrite: false,
-  }), [])
-
-  const wireMat = useMemo(() => new THREE.MeshBasicMaterial({
-    color: '#4ecdc4', wireframe: true, transparent: true, opacity: 0.18,
-  }), [])
+    const t = setTimeout(() => setStarted(true), delay)
+    return () => clearTimeout(t)
+  }, [delay])
 
   useEffect(() => {
-    const light = theme === 'light'
-    holoMat.uniforms.uColorA.value.set(light ? '#0e9488' : '#4ecdc4')
-    holoMat.uniforms.uColorB.value.set(light ? '#7c3aed' : '#a855f7')
-    holoMat.uniforms.uOpacity.value = light ? 0.28 : 0.85
-    wireMat.color.set(light ? '#0e9488' : '#4ecdc4')
-    wireMat.opacity = light ? 0.1 : 0.18
-    if (innerMatRef.current) {
-      innerMatRef.current.color.set(light ? '#dc2626' : '#ff6b6b')
-      innerMatRef.current.opacity = light ? 0.1 : 0.35
+    if (!started) return
+    const cur = texts[idx]
+    if (!deleting && charIdx <= cur.length) {
+      const t = setTimeout(() => { setDisplay(cur.slice(0, charIdx)); setCharIdx(c => c + 1) }, 68)
+      return () => clearTimeout(t)
     }
-  }, [theme, holoMat, wireMat])
-
-  useFrame(({ clock }) => {
-    const t = clock.getElapsedTime()
-    holoMat.uniforms.uTime.value = t
-    if (outerRef.current) { outerRef.current.rotation.y = t * 0.2; outerRef.current.rotation.x = t * 0.1 }
-    if (innerRef.current) { innerRef.current.rotation.y = -t * 0.3; innerRef.current.rotation.z = t * 0.15 }
-  })
-
-  return (
-    <group>
-      <mesh material={holoMat}><icosahedronGeometry args={[1, 2]} /></mesh>
-      <mesh ref={outerRef} material={wireMat}><icosahedronGeometry args={[1.15, 1]} /></mesh>
-      <mesh ref={innerRef}>
-        <octahedronGeometry args={[0.42, 0]} />
-        <meshBasicMaterial ref={innerMatRef} color="#ff6b6b" wireframe transparent opacity={0.35} />
-      </mesh>
-    </group>
-  )
-}
-
-function FloatingHexagons({ isMobile }: { isMobile: boolean }) {
-  const { theme } = useTheme()
-  const meshRef = useRef<THREE.InstancedMesh>(null)
-  const matRef  = useRef<THREE.MeshBasicMaterial>(null)
-  const dummy   = useMemo(() => new THREE.Object3D(), [])
-
-  const HEX = useMemo(() => isMobile ? [
-    { pos: [-3.2,  1.2, -1.8] as [number,number,number], speed: 0.40, phase: 0.0 },
-    { pos: [ 3.1,  1.4, -2.0] as [number,number,number], speed: 0.50, phase: 1.2 },
-    { pos: [-0.8,  2.2, -2.5] as [number,number,number], speed: 0.30, phase: 1.8 },
-  ] : [
-    { pos: [-3.2,  1.2, -1.8] as [number,number,number], speed: 0.40, phase: 0.0 },
-    { pos: [ 3.1,  1.4, -2.0] as [number,number,number], speed: 0.50, phase: 1.2 },
-    { pos: [-2.6, -1.4, -1.5] as [number,number,number], speed: 0.35, phase: 2.4 },
-    { pos: [ 2.8, -1.2, -1.6] as [number,number,number], speed: 0.45, phase: 0.8 },
-    { pos: [-0.8,  2.2, -2.5] as [number,number,number], speed: 0.30, phase: 1.8 },
-    { pos: [ 1.0, -2.3, -2.2] as [number,number,number], speed: 0.55, phase: 3.0 },
-  ], [isMobile])
-
-  useEffect(() => {
-    if (matRef.current) matRef.current.opacity = theme === 'light' ? 0.25 : 0.6
-  }, [theme])
-
-  useFrame(({ clock }) => {
-    if (!meshRef.current) return
-    const t = clock.getElapsedTime()
-    HEX.forEach((d, i) => {
-      dummy.position.set(d.pos[0], d.pos[1] + Math.sin(t * d.speed + d.phase) * 0.18, d.pos[2])
-      dummy.rotation.set(t * d.speed * 0.4, t * d.speed * 0.6, t * d.speed * 0.2)
-      dummy.scale.setScalar(0.22)
-      dummy.updateMatrix()
-      meshRef.current!.setMatrixAt(i, dummy.matrix)
-    })
-    meshRef.current.instanceMatrix.needsUpdate = true
-  })
-
-  const colors = useMemo(() => {
-    const pal = ['#ff6b6b','#4ecdc4','#a855f7','#ffd93d','#60a5fa','#4ecdc4']
-    const arr = new Float32Array(HEX.length * 3)
-    const c = new THREE.Color()
-    HEX.forEach((_, i) => { c.set(pal[i % pal.length]); arr[i*3]=c.r; arr[i*3+1]=c.g; arr[i*3+2]=c.b })
-    return arr
-  }, [HEX])
-
-  return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, HEX.length]} frustumCulled={false}>
-      <cylinderGeometry args={[1, 1, 0.15, 6, 1]} />
-      <meshBasicMaterial ref={matRef} vertexColors wireframe transparent opacity={0.6} />
-      <bufferAttribute attach="geometry-attributes-color" args={[colors, 3]} />
-    </instancedMesh>
-  )
-}
-
-function StarDust({ isMobile }: { isMobile: boolean }) {
-  const { theme } = useTheme()
-  const ref    = useRef<THREE.Points>(null)
-  const matRef = useRef<THREE.PointsMaterial>(null)
-
-  const pos = useMemo(() => {
-    const count = isMobile ? 150 : 300
-    const arr   = new Float32Array(count * 3)
-    for (let i = 0; i < count; i++) {
-      arr[i*3]   = (Math.random()-0.5)*10
-      arr[i*3+1] = (Math.random()-0.5)*8
-      arr[i*3+2] = (Math.random()-0.5)*6 - 2
+    if (!deleting && charIdx > cur.length) {
+      const t = setTimeout(() => setDeleting(true), 2300); return () => clearTimeout(t)
     }
-    return arr
-  }, [isMobile])
-
-  useEffect(() => {
-    if (matRef.current) {
-      matRef.current.color.set(theme === 'light' ? '#6366f1' : '#ffffff')
-      matRef.current.opacity = theme === 'light' ? 0.12 : 0.2
+    if (deleting && charIdx >= 0) {
+      const t = setTimeout(() => { setDisplay(cur.slice(0, charIdx)); setCharIdx(c => c - 1) }, 32)
+      return () => clearTimeout(t)
     }
-  }, [theme])
-
-  useFrame(({ clock }) => { if (ref.current) ref.current.rotation.y = clock.getElapsedTime() * 0.015 })
+    if (deleting && charIdx < 0) {
+      setDeleting(false); setIdx(i => (i + 1) % texts.length); setCharIdx(0)
+    }
+  }, [started, charIdx, deleting, idx, texts])
 
   return (
-    <points ref={ref} frustumCulled={false}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[pos, 3]} />
-      </bufferGeometry>
-      <pointsMaterial ref={matRef} size={0.012} color="#ffffff" transparent opacity={0.2} depthWrite={false} />
-    </points>
+    <span>
+      {display}
+      <span style={{
+        display: 'inline-block', width: '2px', height: '1em',
+        background: '#4ecdc4', marginLeft: '2px',
+        verticalAlign: 'text-bottom',
+        animation: 'hero-blink 1s step-end infinite',
+      }} />
+    </span>
   )
 }
 
-/* ─── Scene (memoised) ─────────────────────────────────────────────────── */
-
-const Scene = memo(function Scene({ isMobile }: { isMobile: boolean }) {
+/* ─── 3-D Scene — full viewport canvas, orb offset right on desktop ───────── */
+const Scene = memo(function Scene({
+  theme, isMobile,
+}: {
+  theme: 'dark' | 'light'
+  isMobile: boolean
+}) {
   return (
     <Canvas
-      dpr={isMobile ? 1 : (typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 1.5) : 1)}
+      dpr={isMobile ? 1 : Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 1.8)}
       frameloop="always"
-      gl={{ antialias: false, powerPreference: isMobile ? 'low-power' : 'high-performance', stencil: false, alpha: true }}
+      gl={{
+        antialias: !isMobile,
+        powerPreference: isMobile ? 'low-power' : 'high-performance',
+        stencil: false,
+        alpha: true,
+      }}
     >
-      <PerspectiveCamera makeDefault position={[0, 0, 6]} fov={55} />
-      <OrbitControls
-        enableZoom={false} enablePan={false}
-        autoRotate autoRotateSpeed={isMobile ? 0.2 : 0.3}
-        enableDamping dampingFactor={0.05}
-        minPolarAngle={Math.PI * 0.35} maxPolarAngle={Math.PI * 0.65}
-        enabled={!isMobile}
-      />
-      <StarDust isMobile={isMobile} />
-      <OrbitRings isMobile={isMobile} />
-      <HoloCore />
-      <FloatingHexagons isMobile={isMobile} />
+      {/*
+        Camera looks straight ahead.
+        On desktop we shift the CentralScene group to the right (+2.8 x)
+        so the plasma orb is centered inside the right column.
+      */}
+      <PerspectiveCamera makeDefault position={[0, 0, 7.5]} fov={50} />
+
+      {/* Atmospheric background — full spread */}
+      <GeometricBackground theme={theme} />
+
+      {/* Main 3-D centerpiece — pushed right on desktop */}
+      <group position={isMobile ? [0, 0, 0] : [2.8, 0, 0]}>
+        <CentralScene theme={theme} isMobile={isMobile} />
+      </group>
     </Canvas>
   )
 })
 
-/* ─── Stats item ───────────────────────────────────────────────────────── */
+/* ─── Chip ────────────────────────────────────────────────────────────────── */
+function Chip({
+  children, color = '#4ecdc4', delay = 0,
+}: {
+  children: string; color?: string; delay?: number
+}) {
+  const { theme } = useTheme()
+  return (
+    <motion.span
+      initial={{ opacity: 0, scale: 0.80 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.38, delay, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        display: 'inline-block',
+        padding: '4px 13px',
+        borderRadius: '999px',
+        border: `1px solid ${color}40`,
+        background: `${color}0e`,
+        color: theme === 'light' ? `${color}bb` : `${color}cc`,
+        fontSize: '0.67rem',
+        fontFamily: 'monospace',
+        letterSpacing: '0.10em',
+        textTransform: 'uppercase',
+        backdropFilter: 'blur(6px)',
+        userSelect: 'none',
+      }}
+    >
+      {children}
+    </motion.span>
+  )
+}
 
-function StatItem({ value, label, index }: { value: string; label: string; index: number }) {
+/* ─── Stat Card ───────────────────────────────────────────────────────────── */
+function StatCard({
+  value, label, color, delay,
+}: {
+  value: string; label: string; color: string; delay: number
+}) {
+  const { theme } = useTheme()
   return (
     <motion.div
-      className="text-center relative px-4"
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.1 * index, ease: 'easeOut' }}
+      transition={{ duration: 0.45, delay, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+        padding: '10px 18px',
+        borderRadius: '12px',
+        border: `1px solid ${theme === 'light' ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.07)'}`,
+        background: theme === 'light' ? 'rgba(255,255,255,0.60)' : 'rgba(255,255,255,0.04)',
+        backdropFilter: 'blur(18px)',
+        minWidth: '80px',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
     >
-      {/* subtle separator between items */}
-      {index > 0 && (
-        <span
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-px h-6 opacity-20"
-          style={{ background: 'linear-gradient(to bottom, transparent, #4ecdc4, transparent)' }}
-        />
-      )}
-      <div
-        className="font-heading font-bold text-xl sm:text-2xl tabular-nums"
-        style={{
-          background: 'linear-gradient(135deg, #ff6b6b, #4ecdc4)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}
-      >
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
+        background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
+      }} />
+      <span style={{
+        fontWeight: 800,
+        fontSize: 'clamp(1.3rem, 3.5vw, 1.8rem)',
+        background: `linear-gradient(135deg, ${color}, ${color}88)`,
+        WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+        fontVariantNumeric: 'tabular-nums', lineHeight: 1.1,
+      }}>
         {value}
-      </div>
-      <div
-        style={{
-          color: 'var(--text-muted)',
-          fontSize: '0.65rem',
-          fontFamily: 'monospace',
-          marginTop: 4,
-          letterSpacing: '0.06em',
-        }}
-      >
+      </span>
+      <span style={{
+        color: theme === 'light' ? 'rgba(0,0,0,0.38)' : 'rgba(255,255,255,0.35)',
+        fontSize: '0.58rem', fontFamily: 'monospace',
+        letterSpacing: '0.13em', textTransform: 'uppercase',
+      }}>
         {label}
-      </div>
+      </span>
     </motion.div>
   )
 }
 
-/* ─── Hero ─────────────────────────────────────────────────────────────── */
-
+/* ─── Hero ────────────────────────────────────────────────────────────────── */
 export default function Hero() {
   const { theme } = useTheme()
-
-  const badgeRef    = useRef<HTMLDivElement>(null)
-  const titleRef    = useRef<HTMLHeadingElement>(null)
-  const subtitleRef = useRef<HTMLParagraphElement>(null)
-  const techRef     = useRef<HTMLParagraphElement>(null)
-  const btnRef      = useRef<HTMLDivElement>(null)
-  const statsRef    = useRef<HTMLDivElement>(null)
-
   const [isMobile, setIsMobile] = useState(false)
+  const [mounted,  setMounted]  = useState(false)
 
-  /* debounced resize listener */
   useEffect(() => {
+    setMounted(true)
     const check = () => setIsMobile(window.innerWidth < 768)
     check()
     let timer: ReturnType<typeof setTimeout>
@@ -339,210 +189,388 @@ export default function Hero() {
     return () => { window.removeEventListener('resize', onResize); clearTimeout(timer) }
   }, [])
 
-  /* GSAP entrance — shorter delays feel snappier */
-  useEffect(() => {
-    const els = [badgeRef.current, titleRef.current, subtitleRef.current, techRef.current, btnRef.current, statsRef.current]
-    gsap.set(els, { opacity: 0, y: 24 })          // ← set initial y so the tween actually moves
-
-    const tl = gsap.timeline({ delay: isMobile ? 0.9 : 1.2 })
-    tl.to(badgeRef.current,    { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' })
-      .to(titleRef.current,    { opacity: 1, y: 0, duration: 0.70, ease: 'power3.out' }, '-=0.25')
-      .to(subtitleRef.current, { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, '-=0.45')
-      .to(techRef.current,     { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, '-=0.35')
-      .to(btnRef.current,      { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, '-=0.25')
-      .to(statsRef.current,    { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, '-=0.25')
-
-    return () => { tl.kill() }
-  }, [isMobile])
-
   const scrollTo = useCallback((id: string) => {
     const el = document.querySelector(id)
-    if (el) gsap.to(window, { duration: 1, scrollTo: { y: el, offsetY: 72 }, ease: 'power3.inOut' })
+    if (el) gsap.to(window, { duration: 1.1, scrollTo: { y: el, offsetY: 72 }, ease: 'power3.inOut' })
   }, [])
 
-  const bgColor     = theme === 'light' ? '#f5f5f5' : '#0a0a0a'
-  const vignetteRgb = theme === 'light' ? '245,245,245' : '10,10,10'
-
-  const vignetteStart  = theme === 'light' ? 0.0  : 0.1
-  const vignetteMiddle = theme === 'light' ? 0.65 : 0.55
-  const vignetteEnd    = theme === 'light' ? 0.97 : 0.92
+  const bg     = theme === 'light' ? '#f2f2f7' : '#050508'
+  const vigRgb = theme === 'light' ? '242,242,247' : '5,5,8'
 
   const STATS = [
-    { value: '2',   label: 'Projects'  },
-    { value: 'BCA', label: '3rd Year'  },
-    { value: '8+',  label: 'Tech Stack'},
+    { value: '2',   label: 'Projects',   color: '#ff6b6b' },
+    { value: 'BCA', label: '3rd Year',   color: '#4ecdc4' },
+    { value: '8+',  label: 'Tech Stack', color: '#a855f7' },
+  ]
+
+  const CHIPS = [
+    { text: 'Java',        color: '#ff6b6b' },
+    { text: 'Spring Boot', color: '#4ecdc4' },
+    { text: 'React',       color: '#60a5fa' },
+    { text: 'Next.js',     color: '#a855f7' },
+    { text: 'Docker',      color: '#34d399' },
+    { text: 'Cloud',       color: '#fbbf24' },
   ]
 
   return (
     <section
       id="hero"
-      className="relative w-full overflow-hidden"
       style={{
-        backgroundColor: bgColor,
+        position: 'relative',
+        width: '100%',
+        overflow: 'hidden',
+        backgroundColor: bg,
         height:    isMobile ? '100svh' : '100vh',
         minHeight: isMobile ? '100svh' : '100vh',
       }}
     >
-      {/* 3-D canvas */}
-      <div className="absolute inset-0 z-0">
-        <Scene isMobile={isMobile} />
+      {/* ── Keyframes ─────────────────────────────────────────────────────── */}
+      <style>{`
+        @keyframes hero-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+        @keyframes hero-ping  { 75%,100%{transform:scale(2.2);opacity:0} }
+      `}</style>
+
+      {/* ══════════════════════════════════════════════════════════════════
+          LAYER 0 — Full-viewport 3-D canvas (behind everything)
+      ══════════════════════════════════════════════════════════════════ */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+        {mounted && <Scene theme={theme} isMobile={isMobile} />}
       </div>
 
-      {/* Vignette layers */}
-      <div className="absolute inset-0 z-10 pointer-events-none" style={{
-        background: `radial-gradient(ellipse 70% 80% at 50% 50%, rgba(${vignetteRgb},${vignetteStart}) 0%, rgba(${vignetteRgb},${vignetteMiddle}) 55%, rgba(${vignetteRgb},${vignetteEnd}) 100%)`,
-      }} />
-      <div className="absolute bottom-0 left-0 right-0 h-52 z-10 pointer-events-none"
-        style={{ background: `linear-gradient(to bottom, transparent, ${bgColor})` }} />
-      <div className="absolute top-0 left-0 right-0 h-32 z-10 pointer-events-none"
-        style={{ background: `linear-gradient(to bottom, ${bgColor}CC, transparent)` }} />
+      {/* ══════════════════════════════════════════════════════════════════
+          LAYER 1 — Gradient masks so text is always readable
+          On desktop: strong left-side fade covers ~50% width
+          On mobile:  radial vignette + top+bottom fades
+      ══════════════════════════════════════════════════════════════════ */}
 
-      {theme === 'light' && (
-        <>
-          <div className="absolute inset-y-0 left-0 w-48 z-10 pointer-events-none"
-            style={{ background: `linear-gradient(to right, ${bgColor}, transparent)` }} />
-          <div className="absolute inset-y-0 right-0 w-48 z-10 pointer-events-none"
-            style={{ background: `linear-gradient(to left, ${bgColor}, transparent)` }} />
-        </>
+      {/* Top fade */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: '110px',
+        zIndex: 1, pointerEvents: 'none',
+        background: `linear-gradient(to bottom, ${bg}ee, transparent)`,
+      }} />
+
+      {/* Bottom fade */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: '180px',
+        zIndex: 1, pointerEvents: 'none',
+        background: `linear-gradient(to top, ${bg}, transparent)`,
+      }} />
+
+      {/* Desktop — solid left panel backing the text column */}
+      {!isMobile && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, bottom: 0,
+          width: '52%',
+          zIndex: 1, pointerEvents: 'none',
+          /* deep solid on the left, feathering into transparent on the right */
+          background: theme === 'dark'
+            ? `linear-gradient(to right,
+                rgba(5,5,8,0.97)  0%,
+                rgba(5,5,8,0.92) 55%,
+                rgba(5,5,8,0.60) 78%,
+                rgba(5,5,8,0.00) 100%)`
+            : `linear-gradient(to right,
+                rgba(242,242,247,0.98)  0%,
+                rgba(242,242,247,0.93) 55%,
+                rgba(242,242,247,0.62) 78%,
+                rgba(242,242,247,0.00) 100%)`,
+        }} />
       )}
 
-      {/* Main content */}
-      <div className="absolute inset-0 z-30 flex items-center justify-center">
-        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 text-center">
+      {/* Mobile — radial vignette to separate text from 3-D */}
+      {isMobile && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          zIndex: 1, pointerEvents: 'none',
+          background: `radial-gradient(ellipse 90% 65% at 50% 62%,
+            rgba(${vigRgb},0.0) 0%,
+            rgba(${vigRgb},0.50) 45%,
+            rgba(${vigRgb},0.92) 100%)`,
+        }} />
+      )}
 
-          {/* Badge */}
-          <div ref={badgeRef} className={isMobile ? 'mb-5' : 'mb-7'}>
-            <span
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm"
-              style={{
-                backgroundColor: theme === 'light' ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)',
-                border: `1px solid ${theme === 'light' ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.10)'}`,
-                backdropFilter: 'blur(16px)',
-              }}
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
+      {/* Right-edge soft fade (desktop) — blends 3-D into bg on far right */}
+      {!isMobile && (
+        <div style={{
+          position: 'absolute', top: 0, right: 0, bottom: 0, width: '12%',
+          zIndex: 1, pointerEvents: 'none',
+          background: `linear-gradient(to left, ${bg}cc, transparent)`,
+        }} />
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════
+          LAYER 2 — UI content
+          Desktop: flex row → left column (text) + right spacer (3D shows through)
+          Mobile:  flex column → 3D peek at top, text below centered
+      ══════════════════════════════════════════════════════════════════ */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 10,
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        alignItems: isMobile ? 'flex-end' : 'center',
+      }}>
+
+        {/* ── LEFT / BOTTOM text column ───────────────────────────────────── */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: isMobile ? 'center' : 'flex-start',
+          textAlign: isMobile ? 'center' : 'left',
+          gap: isMobile ? '1.0rem' : '1.25rem',
+          padding: isMobile
+            ? '0 1.4rem 3.5rem 1.4rem'
+            : '0 0 0 clamp(2.5rem, 5vw, 5rem)',
+          width: isMobile ? '100%' : '50%',
+          flexShrink: 0,
+        }}>
+
+          {/* Status badge */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.55, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: '9px',
+              padding: '5px 16px 5px 10px',
+              borderRadius: '999px',
+              border: `1px solid ${theme === 'light' ? 'rgba(78,205,196,0.28)' : 'rgba(78,205,196,0.20)'}`,
+              background: theme === 'light' ? 'rgba(255,255,255,0.70)' : 'rgba(78,205,196,0.06)',
+              backdropFilter: 'blur(16px)',
+            }}>
+              <span style={{ position: 'relative', display: 'inline-flex', width: '8px', height: '8px' }}>
+                <span style={{ position:'absolute',inset:0,borderRadius:'50%',background:'#22d37a',opacity:0.75,animation:'hero-ping 1.4s cubic-bezier(0,0,0.2,1) infinite' }} />
+                <span style={{ position:'relative',width:'8px',height:'8px',borderRadius:'50%',background:'#22d37a' }} />
               </span>
-              <span className="font-mono" style={{ color: 'var(--text-secondary)' }}>
+              <span style={{
+                fontFamily: 'monospace', fontSize: '0.68rem', letterSpacing: '0.10em',
+                color: theme === 'light' ? 'rgba(0,0,0,0.52)' : 'rgba(255,255,255,0.52)',
+                textTransform: 'uppercase',
+              }}>
                 Open to Jobs &amp; Internships
               </span>
             </span>
+          </motion.div>
+
+          {/* Name */}
+          <div style={{ overflow: 'hidden' }}>
+            <motion.h1
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.85, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              style={{
+                margin: 0, fontWeight: 900, lineHeight: 0.93,
+                letterSpacing: '-0.03em',
+                fontSize: isMobile
+                  ? 'clamp(3.6rem, 17vw, 6rem)'
+                  : 'clamp(4.5rem, 8.5vw, 7.5rem)',
+              }}
+            >
+              <span style={{
+                display: 'block',
+                color: theme === 'light' ? '#111118' : '#eeeeff',
+              }}>
+                Ajay
+              </span>
+              <span style={{
+                display: 'block',
+                background: 'linear-gradient(135deg, #ff6b6b 0%, #a855f7 48%, #4ecdc4 100%)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+                filter: theme === 'dark' ? 'drop-shadow(0 0 36px rgba(168,85,247,0.42))' : 'none',
+              }}>
+                Patil
+              </span>
+            </motion.h1>
           </div>
 
-          {/* Heading */}
-          <h1
-            ref={titleRef}
-            className="font-heading font-bold mb-3 sm:mb-4"
+          {/* Accent line under name */}
+          <motion.div
+            initial={{ scaleX: 0, opacity: 0 }}
+            animate={{ scaleX: 1, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.85, ease: [0.22, 1, 0.36, 1] }}
             style={{
-              fontSize:   isMobile ? 'clamp(2.8rem, 12vw, 4.5rem)' : 'clamp(3.2rem, 9vw, 6.5rem)',
-              lineHeight: 1.05,
-              color:      'var(--text-primary)',
+              height: '2px',
+              width: isMobile ? '140px' : '200px',
+              transformOrigin: isMobile ? 'center' : 'left',
+              background: 'linear-gradient(90deg, #ff6b6b, #a855f7, #4ecdc4)',
+              borderRadius: '2px',
             }}
-          >
-            <span>Ajay </span>
-            <span style={{
-              background: 'linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 50%, #a855f7 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}>
-              Patil
-            </span>
-          </h1>
+          />
 
-          {/* Role */}
-          <p
-            ref={subtitleRef}
-            className="font-mono font-semibold mb-2 sm:mb-3"
+          {/* Typewriter */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.95 }}
             style={{
-              fontSize:      isMobile ? 'clamp(0.9rem, 4vw, 1.1rem)' : 'clamp(1rem, 2.8vw, 1.4rem)',
-              color:         'var(--text-secondary)',
+              margin: 0,
+              fontFamily: 'monospace', fontWeight: 600,
+              fontSize: isMobile ? 'clamp(0.82rem, 3.2vw, 1.05rem)' : 'clamp(0.95rem, 1.8vw, 1.25rem)',
+              color: theme === 'light' ? 'rgba(0,0,0,0.52)' : 'rgba(238,238,255,0.58)',
               letterSpacing: '0.02em',
+              minHeight: '1.65em',
             }}
           >
-            Full Stack Developer
-          </p>
+            <Typewriter
+              texts={['Full Stack Developer', 'Java + Spring Boot', 'React + Next.js', 'Cloud Architect']}
+              delay={1500}
+            />
+          </motion.p>
 
-          {/* Tech stack line */}
-          <p
-            ref={techRef}
-            className="mb-6 sm:mb-9"
+          {/* Tech chips */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 1.10 }}
             style={{
-              color:         'var(--text-muted)',
-              fontSize:      isMobile ? '0.7rem' : '0.85rem',
-              letterSpacing: '0.08em',
+              display: 'flex', flexWrap: 'wrap', gap: '7px',
+              justifyContent: isMobile ? 'center' : 'flex-start',
             }}
           >
-            Java · Spring Boot · React · Next.js · Docker · Cloud
-          </p>
+            {CHIPS.map((c, i) => (
+              <Chip key={c.text} color={c.color} delay={1.15 + i * 0.055}>{c.text}</Chip>
+            ))}
+          </motion.div>
 
           {/* CTA buttons */}
-          <div
-            ref={btnRef}
-            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0"
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 1.40 }}
+            style={{
+              display: 'flex', gap: '12px', flexWrap: 'wrap',
+              justifyContent: isMobile ? 'center' : 'flex-start',
+            }}
           >
             <motion.button
               onClick={() => scrollTo('#projects')}
-              className="relative px-6 sm:px-8 py-3 sm:py-4 text-white rounded-full text-sm sm:text-base font-bold overflow-hidden cursor-hover"
-              style={{
-                background:  'linear-gradient(135deg, #ff6b6b, #a855f7)',
-                boxShadow:   '0 0 30px rgba(255,107,107,0.35)',
-              }}
-              whileHover={{ scale: 1.04 }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.96 }}
+              style={{
+                position: 'relative', overflow: 'hidden',
+                padding: isMobile ? '11px 24px' : '12px 30px',
+                background: 'linear-gradient(135deg, #ff6b6b 0%, #a855f7 55%, #4ecdc4 100%)',
+                border: 'none', borderRadius: '999px',
+                color: '#fff', fontWeight: 700, cursor: 'pointer',
+                fontSize: isMobile ? '0.84rem' : '0.90rem',
+                boxShadow: theme === 'dark'
+                  ? '0 0 36px rgba(255,107,107,0.26), 0 4px 20px rgba(168,85,247,0.20)'
+                  : '0 4px 20px rgba(255,107,107,0.30)',
+              }}
             >
-              {/* shimmer sweep */}
               <motion.span
-                className="absolute inset-0 bg-white/25"
-                initial={{ x: '-100%', skewX: -15 }}
-                whileHover={{ x: '200%' }}
-                transition={{ duration: 0.45 }}
+                style={{
+                  position: 'absolute', inset: 0,
+                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent)',
+                }}
+                initial={{ x: '-120%' }}
+                whileHover={{ x: '120%' }}
+                transition={{ duration: 0.50 }}
               />
-              <span className="relative">View Projects →</span>
+              <span style={{ position: 'relative' }}>View Projects →</span>
             </motion.button>
 
             <motion.button
               onClick={() => scrollTo('#contact')}
-              className="px-6 sm:px-8 py-3 sm:py-4 rounded-full text-sm sm:text-base font-bold cursor-hover"
-              style={{
-                border:          `1.5px solid ${theme === 'light' ? 'rgba(0,0,0,0.22)' : 'rgba(255,255,255,0.22)'}`,
-                color:           'var(--text-primary)',
-                backdropFilter:  'blur(12px)',
-                backgroundColor: theme === 'light' ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)',
-              }}
-              whileHover={{ scale: 1.04 }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.96 }}
+              style={{
+                padding: isMobile ? '11px 24px' : '12px 30px',
+                background: theme === 'light' ? 'rgba(255,255,255,0.60)' : 'rgba(78,205,196,0.06)',
+                border: `1.5px solid ${theme === 'light' ? 'rgba(99,102,241,0.30)' : 'rgba(78,205,196,0.30)'}`,
+                borderRadius: '999px',
+                color: theme === 'light' ? '#111118' : '#eeeeff',
+                fontWeight: 600, cursor: 'pointer',
+                fontSize: isMobile ? '0.84rem' : '0.90rem',
+                backdropFilter: 'blur(14px)',
+                boxShadow: theme === 'dark' ? '0 0 20px rgba(78,205,196,0.06)' : 'none',
+              }}
             >
               Get in Touch
             </motion.button>
-          </div>
+          </motion.div>
 
-          {/* Stats row */}
-          <div ref={statsRef} className={`flex items-center justify-center ${isMobile ? 'gap-0 mt-8' : 'gap-0 mt-12'}`}>
+          {/* Stats */}
+          <div style={{
+            display: 'flex', gap: '10px',
+            justifyContent: isMobile ? 'center' : 'flex-start',
+            paddingTop: '2px',
+          }}>
             {STATS.map((s, i) => (
-              <StatItem key={s.label} value={s.value} label={s.label} index={i} />
+              <StatCard key={s.label} value={s.value} label={s.label} color={s.color} delay={1.50 + i * 0.09} />
             ))}
           </div>
         </div>
+
+        {/* ── RIGHT spacer — 3-D shows through here ──────────────────────── */}
+        {!isMobile && <div style={{ flex: 1 }} />}
       </div>
 
-      {/* Scroll indicator */}
+      {/* ══════════════════════════════════════════════════════════════════
+          LAYER 3 — Decorative chrome
+      ══════════════════════════════════════════════════════════════════ */}
+
+      {/* Thin vertical separator line (desktop) */}
       {!isMobile && (
         <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2"
+          initial={{ scaleY: 0, opacity: 0 }}
+          animate={{ scaleY: 1, opacity: 1 }}
+          transition={{ duration: 1.2, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            position: 'absolute',
+            left: '50%', top: '12%', bottom: '12%',
+            width: '1px',
+            transformOrigin: 'top center',
+            background: theme === 'dark'
+              ? 'linear-gradient(to bottom, transparent, rgba(78,205,196,0.22) 30%, rgba(168,85,247,0.18) 70%, transparent)'
+              : 'linear-gradient(to bottom, transparent, rgba(78,205,196,0.35) 30%, rgba(168,85,247,0.28) 70%, transparent)',
+            zIndex: 8,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+
+      {/* Section label — bottom left */}
+      {!isMobile && (
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 3.0 }}   /* reduced from 4.0 */
+          transition={{ delay: 2.4, duration: 0.8 }}
+          style={{
+            position: 'absolute', bottom: '2.2rem', left: 'clamp(2.5rem,5vw,5rem)',
+            zIndex: 20, pointerEvents: 'none',
+            display: 'flex', alignItems: 'center', gap: '10px',
+          }}
         >
-          <span style={{ color: 'var(--text-faint)', fontSize: '0.6rem', letterSpacing: '0.3em', fontFamily: 'monospace' }}>
-            SCROLL
+          <div style={{ width: '22px', height: '1px', background: theme === 'light' ? 'rgba(0,0,0,0.20)' : 'rgba(255,255,255,0.18)' }} />
+        </motion.div>
+      )}
+
+      {/* Scroll cue — bottom center */}
+      {!isMobile && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 3.0, duration: 0.8 }}
+          style={{
+            position: 'absolute', bottom: '1.8rem', left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 20, pointerEvents: 'none',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
+          }}
+        >
+          <span style={{
+            fontFamily: 'monospace', fontSize: '0.50rem', letterSpacing: '0.26em',
+            color: theme === 'light' ? 'rgba(0,0,0,0.20)' : 'rgba(255,255,255,0.20)',
+            textTransform: 'uppercase',
+          }}>
+            Scroll
           </span>
           <motion.div
-            className="w-px h-8"
-            style={{ background: 'linear-gradient(to bottom, #ff6b6b, transparent)' }}
-            animate={{ scaleY: [0, 1, 0] }}
-            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ width: '1px', background: 'linear-gradient(to bottom, #4ecdc4, transparent)' }}
+            animate={{ height: ['0px', '36px', '0px'], opacity: [0, 1, 0] }}
+            transition={{ duration: 1.9, repeat: Infinity, ease: 'easeInOut' }}
           />
         </motion.div>
       )}
