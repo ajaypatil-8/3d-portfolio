@@ -56,7 +56,6 @@ function Typewriter({ texts, delay = 0 }: { texts: string[]; delay?: number }) {
   )
 }
 
-/* ─── Tech Pill ──────────────────────────────────────────────────────────── */
 const PILL_COLORS: Record<string, { border: string; text: string; bg: string }> = {
   JAVA:         { border: '#f87171', text: '#f87171', bg: 'rgba(248,113,113,0.08)' },
   'SPRING BOOT':{ border: '#4ade80', text: '#4ade80', bg: 'rgba(74,222,128,0.08)' },
@@ -210,8 +209,7 @@ export default function Hero() {
     if (el) gsap.to(window, { duration: 1.1, scrollTo: { y: el, offsetY: 72 }, ease: 'power3.inOut' })
   }, [])
 
-  /* Colours */
-  const bg         = dark ? '#0e0e16' : '#f0f0f7'
+  /* Colours — bg now uses the same CSS variable as the Projects section */
   const textPri    = dark ? '#ffffff' : '#0a0a14'
   const textMuted  = dark ? 'rgba(255,255,255,0.42)' : 'rgba(0,0,0,0.42)'
   const badgeBg    = dark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.70)'
@@ -232,7 +230,7 @@ export default function Hero() {
       id="hero"
       className="relative w-full overflow-hidden"
       style={{
-        backgroundColor: bg,
+        backgroundColor: 'var(--bg-secondary)',
         height:    isMobile ? '100svh' : '100vh',
         minHeight: isMobile ? '100svh' : '100vh',
       }}
@@ -256,17 +254,14 @@ export default function Hero() {
           style={{
             zIndex: 1,
             width: '52%',
-            background: `linear-gradient(to right, ${bg} 30%, ${bg}cc 65%, transparent 100%)`,
+            background: 'linear-gradient(to right, var(--bg-secondary) 30%, color-mix(in srgb, var(--bg-secondary) 80%, transparent) 65%, transparent 100%)',
           }}
         />
       )}
       {/* Top & bottom edge fades */}
-      <div className="absolute inset-x-0 top-0 h-24 pointer-events-none" style={{ zIndex: 1, background: `linear-gradient(to bottom,${bg},transparent)` }} />
-      <div className="absolute inset-x-0 bottom-0 h-24 pointer-events-none" style={{ zIndex: 1, background: `linear-gradient(to top,${bg},transparent)` }} />
+      <div className="absolute inset-x-0 top-0 h-24 pointer-events-none" style={{ zIndex: 1, background: 'linear-gradient(to bottom, var(--bg-secondary), transparent)' }} />
+      <div className="absolute inset-x-0 bottom-0 h-24 pointer-events-none" style={{ zIndex: 1, background: 'linear-gradient(to top, var(--bg-secondary), transparent)' }} />
 
-      {/* ══════════════════════════════════════════════════════════════
-          LEFT SIDE — all text content
-          ══════════════════════════════════════════════════════════════ */}
       <div
         className={`absolute inset-0 flex items-center ${isMobile ? 'justify-center' : 'justify-start'}`}
         style={{ zIndex: 10 }}
