@@ -6,6 +6,28 @@ import { useTheme } from '@/components/providers/ThemeProvider'
 const projects = [
   {
     id: 1,
+    title: 'AeroSphere',
+    subtitle: 'Airline Booking & Management System — Java / Docker',
+    description:
+      'A production-grade full-stack airline booking platform with multi-role authentication, real-time seat availability, flight search, booking management, and Razorpay payment gateway — fully Dockerized and deployed live on Railway PaaS with automated CI/CD via GitHub Actions.',
+    tech: ['Java 11', 'JSP/Servlets', 'Apache Tomcat 9', 'MySQL 8', 'Nginx', 'Docker', 'Maven', 'Railway', 'GitHub Actions'],
+    highlights: [
+      'Multi-role auth — Admin & User dashboards',
+      'Razorpay payment gateway integrated',
+      '3-service Docker Compose stack (Tomcat + MySQL + Nginx)',
+      'Nginx rate limiting, gzip & SSL-ready config',
+      'CI/CD pipeline — auto-deploy on every git push',
+      'UptimeRobot monitoring — 100% uptime',
+    ],
+    status: 'completed',
+    statusLabel: 'Live & Deployed',
+    color: '#6366f1',
+    icon: '✈️',
+    github: 'https://github.com/ajaypatil-8/aerosphere-airline-management-system',
+    demo: 'https://aerosphere.up.railway.app',
+  },
+  {
+    id: 2,
     title: 'CrowdSpark-X',
     subtitle: 'Crowdfunding Platform — PHP Version',
     description:
@@ -26,7 +48,7 @@ const projects = [
     demo: 'https://crowdspark-x.infinityfreeapp.com',
   },
   {
-    id: 2,
+    id: 3,
     title: 'CrowdSpark-X Advanced',
     subtitle: 'Microservices Architecture — Spring Boot Version',
     description:
