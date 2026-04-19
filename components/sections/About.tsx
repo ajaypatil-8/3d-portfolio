@@ -26,8 +26,8 @@ const skills = [
     keywords: ['React', 'Next.js', 'TypeScript', 'Tailwind CSS'],
   },
   {
-    icon: '🐳', title: 'Docker & Cloud', tag: 'Learning', color: '#94a3b8',
-    keywords: ['Docker', 'Kubernetes', 'AWS', 'CI/CD'],
+    icon: '🐳', title: 'Docker & Cloud', tag: 'Comfortable', color: '#38bdf8',
+    keywords: ['Docker', 'Docker Compose', 'Nginx', 'Railway', 'GitHub Actions', 'AWS', 'CI/CD'],
   },
 ]
 
