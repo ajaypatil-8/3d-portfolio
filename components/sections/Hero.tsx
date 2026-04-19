@@ -220,9 +220,9 @@ export default function Hero() {
 
   const PILLS = ['JAVA', 'SPRING BOOT', 'REACT', 'NEXT.JS', 'DOCKER', 'CLOUD']
   const STATS = [
-    { value: '2',   label: 'Projects',   color: '#ff6b6b' },
+    { value: '3',   label: 'Projects',   color: '#ff6b6b' },
     { value: 'BCA', label: '3rd Year',   color: '#4ecdc4' },
-    { value: '8+',  label: 'Tech Stack', color: '#a855f7' },
+    { value: '12+', label: 'Tech Stack', color: '#a855f7' },
   ]
 
   return (
