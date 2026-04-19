@@ -67,6 +67,8 @@ const tools = [
   { name: 'Cloudinary',     icon: '☁️' },
   { name: 'Kafka',          icon: '📨' },
   { name: 'XAMPP',          icon: '🛠️' },
+  { name: 'Railway',         icon: '🚂' },
+  { name: 'UptimeRobot',     icon: '📡' },
 ]
 
 const legend = [
