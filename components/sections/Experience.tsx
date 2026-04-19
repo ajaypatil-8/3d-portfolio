@@ -47,6 +47,13 @@ const selfLearning = [
     tags: ['React', 'Next.js', 'TypeScript', 'Tailwind'],
   },
   {
+    year: '2026 – Present', icon: '✈️', color: '#6366f1',
+    title: 'AeroSphere — Full Production Deployment',
+    org: 'Live Project',
+    description: 'Deployed a full airline booking system on Railway PaaS with a 3-service Docker Compose stack (Tomcat + MySQL + Nginx), multi-stage Maven build, GitHub Actions CI/CD pipeline, and UptimeRobot uptime monitoring. Integrated Razorpay payments and Gmail SMTP.',
+    tags: ['Docker', 'Nginx', 'Railway', 'GitHub Actions', 'CI/CD', 'MySQL'],
+  },
+  {
     year: '2026 – Present', icon: '🐳', color: '#a855f7',
     title: 'Docker & Cloud Basics',
     org: 'Self-Learning',
