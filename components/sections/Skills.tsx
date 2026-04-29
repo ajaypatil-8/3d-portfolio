@@ -45,7 +45,7 @@ const skillCategories = [
       { name: 'MongoDB',    level: 'Comfortable' },
       { name: 'Kafka',      level: 'Comfortable' },
       { name: 'Redis',      level: 'Familiar'    },
-      { name: 'AWS',        level: 'Familiar'    },
+      { name: 'AWS',        level: 'Comfortable' },
       { name: 'Azure',      level: 'Familiar'    },
       { name: 'Kubernetes', level: 'Familiar'    },
     ],
@@ -67,8 +67,8 @@ const tools = [
   { name: 'Cloudinary',     icon: '☁️' },
   { name: 'Kafka',          icon: '📨' },
   { name: 'XAMPP',          icon: '🛠️' },
-  { name: 'Railway',         icon: '🚂' },
-  { name: 'UptimeRobot',     icon: '📡' },
+  { name: 'AWS EC2',        icon: '☁️' },
+  { name: 'UptimeRobot',    icon: '📡' },
 ]
 
 const legend = [

@@ -4,27 +4,27 @@ import { motion } from 'framer-motion'
 import { useTheme } from '@/components/providers/ThemeProvider'
 
 const projects = [
-  {
+{
     id: 1,
     title: 'AeroSphere',
-    subtitle: 'Airline Booking & Management System — Java / Docker',
+    subtitle: 'Airline Booking & Management System — Java / Docker / AWS',
     description:
-      'A production-grade full-stack airline booking platform with multi-role authentication, real-time seat availability, flight search, booking management, and Razorpay payment gateway — fully Dockerized and deployed live on Railway PaaS with automated CI/CD via GitHub Actions.',
-    tech: ['Java 11', 'JSP/Servlets', 'Apache Tomcat 9', 'MySQL 8', 'Nginx', 'Docker', 'Maven', 'Railway', 'GitHub Actions'],
+      'A production-grade full-stack airline booking platform with multi-role authentication, real-time seat availability, flight search, booking management, and Razorpay payment gateway — fully Dockerized and self-hosted on AWS EC2 with a custom domain, free SSL via Let\'s Encrypt, and automated CI/CD via GitHub Actions.',
+    tech: ['Java 11', 'JSP/Servlets', 'Apache Tomcat 9', 'MySQL 8', 'Nginx', 'Docker', 'Maven', 'AWS EC2', 'Let\'s Encrypt', 'GitHub Actions'],
     highlights: [
-      'Multi-role auth — Admin & User dashboards',
-      'Razorpay payment gateway integrated',
+      'Deployed on AWS EC2 t3.small with Elastic IP & custom domain',
+      'Free HTTPS via Let\'s Encrypt — auto-renewing SSL certificate',
       '3-service Docker Compose stack (Tomcat + MySQL + Nginx)',
-      'Nginx rate limiting, gzip & SSL-ready config',
+      'Nginx: HTTP→HTTPS redirect, rate limiting, gzip & HSTS headers',
+      'Razorpay payment gateway + Gmail SMTP notifications',
       'CI/CD pipeline — auto-deploy on every git push',
-      'UptimeRobot monitoring — 100% uptime',
     ],
     status: 'completed',
     statusLabel: 'Live & Deployed',
     color: '#6366f1',
     icon: '✈️',
     github: 'https://github.com/ajaypatil-8/aerosphere-airline-management-system',
-    demo: 'https://aerosphere.up.railway.app',
+    demo: 'https://aerosphere.work.gd',
   },
   {
     id: 2,
@@ -280,14 +280,14 @@ function ProjectCard({ project, index }: { project: typeof projects[0]; index: n
                   <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                     Development Progress
                   </span>
-                  <span className="text-xs font-mono" style={{ color: '#fbbf24' }}>~60%</span>
+                  <span className="text-xs font-mono" style={{ color: '#fbbf24' }}>~85%</span>
                 </div>
                 <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border)' }}>
                   <motion.div
                     className="h-full rounded-full"
                     style={{ background: 'linear-gradient(90deg, #f59e0b, #f97316)' }}
                     initial={{ width: 0 }}
-                    whileInView={{ width: '55%' }}
+                    whileInView={{ width: '85%' }}
                     viewport={{ once: true }}
                     transition={{ duration: 1.2, ease: 'easeOut' }}
                   />

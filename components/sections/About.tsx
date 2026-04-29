@@ -27,7 +27,7 @@ const skills = [
   },
   {
     icon: '🐳', title: 'Docker & Cloud', tag: 'Comfortable', color: '#38bdf8',
-    keywords: ['Docker', 'Docker Compose', 'Nginx', 'Railway', 'GitHub Actions', 'AWS', 'CI/CD'],
+    keywords: ['Docker', 'Docker Compose', 'Nginx', 'AWS EC2', 'GitHub Actions', 'Let\'s Encrypt', 'CI/CD'],
   },
 ]
 

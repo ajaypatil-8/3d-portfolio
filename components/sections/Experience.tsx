@@ -46,12 +46,12 @@ const selfLearning = [
     description: 'Learned React.js and Next.js to build the frontend for CrowdSpark-X Advanced. Comfortable with TypeScript, Tailwind CSS, REST API integration and component-based architecture.',
     tags: ['React', 'Next.js', 'TypeScript', 'Tailwind'],
   },
-  {
+{
     year: '2026 – Present', icon: '✈️', color: '#6366f1',
     title: 'AeroSphere — Full Production Deployment',
-    org: 'Live Project',
-    description: 'Deployed a full airline booking system on Railway PaaS with a 3-service Docker Compose stack (Tomcat + MySQL + Nginx), multi-stage Maven build, GitHub Actions CI/CD pipeline, and UptimeRobot uptime monitoring. Integrated Razorpay payments and Gmail SMTP.',
-    tags: ['Docker', 'Nginx', 'Railway', 'GitHub Actions', 'CI/CD', 'MySQL'],
+    org: 'Live Project · aerosphere.work.gd',
+    description: 'Deployed a full airline booking system on AWS EC2 (t3.small) with Elastic IP, custom domain aerosphere.work.gd, free HTTPS via Let\'s Encrypt (certbot), and a 3-service Docker Compose stack (Tomcat + MySQL + Nginx). Configured Nginx with HTTP→HTTPS redirect, HSTS, rate limiting, and gzip. Integrated Razorpay payments and Gmail SMTP.',
+    tags: ['AWS EC2', 'Docker', 'Nginx', 'Let\'s Encrypt', 'GitHub Actions', 'MySQL'],
   },
   {
     year: '2026 – Present', icon: '🐳', color: '#a855f7',
