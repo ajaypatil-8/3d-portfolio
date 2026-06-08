@@ -10,7 +10,7 @@ import { useTheme } from '@/components/providers/ThemeProvider'
 
 gsap.registerPlugin(ScrollToPlugin)
 
-const PROFILE_IMG = '/images/Profile.jpg'
+const PROFILE_IMG = '/images/Profile.jpeg'
 const RESUME_FILE = '/resume/Ajay_Patil_Resume.pdf'
 
 const navItems = [

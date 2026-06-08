@@ -1,8 +1,8 @@
 'use client'
 
 import { Canvas } from '@react-three/fiber'
-import { PerspectiveCamera } from '@react-three/drei'
-import { motion, AnimatePresence } from 'framer-motion'
+import { PerspectiveCamera, AdaptiveDpr, PerformanceMonitor } from '@react-three/drei'
+import { motion } from 'framer-motion'
 import { useEffect, useRef, useState, useCallback, memo } from 'react'
 import { gsap } from 'gsap'
 import { ScrollToPlugin } from 'gsap/dist/ScrollToPlugin'
@@ -57,20 +57,20 @@ function Typewriter({ texts, delay = 0 }: { texts: string[]; delay?: number }) {
 }
 
 const PILL_COLORS: Record<string, { border: string; text: string; bg: string }> = {
-  JAVA:         { border: '#f87171', text: '#f87171', bg: 'rgba(248,113,113,0.08)' },
-  'SPRING BOOT':{ border: '#4ade80', text: '#4ade80', bg: 'rgba(74,222,128,0.08)' },
-  REACT:        { border: '#60a5fa', text: '#60a5fa', bg: 'rgba(96,165,250,0.08)' },
-  'NEXT.JS':    { border: '#a78bfa', text: '#a78bfa', bg: 'rgba(167,139,250,0.08)' },
-  DOCKER:       { border: '#38bdf8', text: '#38bdf8', bg: 'rgba(56,189,248,0.08)' },
-  CLOUD:        { border: '#fbbf24', text: '#fbbf24', bg: 'rgba(251,191,36,0.08)'  },
+  JAVA:          { border: '#f87171', text: '#f87171', bg: 'rgba(248,113,113,0.08)' },
+  'SPRING BOOT': { border: '#4ade80', text: '#4ade80', bg: 'rgba(74,222,128,0.08)'  },
+  REACT:         { border: '#60a5fa', text: '#60a5fa', bg: 'rgba(96,165,250,0.08)'  },
+  'NEXT.JS':     { border: '#a78bfa', text: '#a78bfa', bg: 'rgba(167,139,250,0.08)' },
+  DOCKER:        { border: '#38bdf8', text: '#38bdf8', bg: 'rgba(56,189,248,0.08)'  },
+  CLOUD:         { border: '#fbbf24', text: '#fbbf24', bg: 'rgba(251,191,36,0.08)'  },
 }
 const PILL_COLORS_LIGHT: Record<string, { border: string; text: string; bg: string }> = {
-  JAVA:         { border: '#dc2626', text: '#dc2626', bg: 'rgba(220,38,38,0.07)'   },
-  'SPRING BOOT':{ border: '#16a34a', text: '#16a34a', bg: 'rgba(22,163,74,0.07)'  },
-  REACT:        { border: '#2563eb', text: '#2563eb', bg: 'rgba(37,99,235,0.07)'  },
-  'NEXT.JS':    { border: '#7c3aed', text: '#7c3aed', bg: 'rgba(124,58,237,0.07)' },
-  DOCKER:       { border: '#0284c7', text: '#0284c7', bg: 'rgba(2,132,199,0.07)'  },
-  CLOUD:        { border: '#d97706', text: '#d97706', bg: 'rgba(217,119,6,0.07)'  },
+  JAVA:          { border: '#dc2626', text: '#dc2626', bg: 'rgba(220,38,38,0.07)'  },
+  'SPRING BOOT': { border: '#16a34a', text: '#16a34a', bg: 'rgba(22,163,74,0.07)'  },
+  REACT:         { border: '#2563eb', text: '#2563eb', bg: 'rgba(37,99,235,0.07)'  },
+  'NEXT.JS':     { border: '#7c3aed', text: '#7c3aed', bg: 'rgba(124,58,237,0.07)' },
+  DOCKER:        { border: '#0284c7', text: '#0284c7', bg: 'rgba(2,132,199,0.07)'  },
+  CLOUD:         { border: '#d97706', text: '#d97706', bg: 'rgba(217,119,6,0.07)'  },
 }
 
 function TechPill({ label, theme }: { label: string; theme: 'dark' | 'light' }) {
@@ -78,16 +78,16 @@ function TechPill({ label, theme }: { label: string; theme: 'dark' | 'light' }) 
   const c   = map[label] ?? { border: '#888', text: '#888', bg: 'transparent' }
   return (
     <span style={{
-      border:          `1px solid ${c.border}`,
-      color:           c.text,
-      background:      c.bg,
-      borderRadius:    '999px',
-      padding:         '3px 12px',
-      fontSize:        '0.60rem',
-      fontWeight:      600,
-      letterSpacing:   '0.10em',
-      fontFamily:      'monospace',
-      whiteSpace:      'nowrap',
+      border:        `1px solid ${c.border}`,
+      color:          c.text,
+      background:     c.bg,
+      borderRadius:  '999px',
+      padding:       '3px 12px',
+      fontSize:      '0.60rem',
+      fontWeight:     600,
+      letterSpacing: '0.10em',
+      fontFamily:    'monospace',
+      whiteSpace:    'nowrap',
     }}>
       {label}
     </span>
@@ -108,7 +108,10 @@ function StatCard({
         background:     theme === 'light' ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.05)',
         border:         `1px solid ${theme === 'light' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.09)'}`,
         borderRadius:   '14px',
-        backdropFilter: 'blur(16px)',
+        /* isolate backdrop-filter on its own layer to avoid re-compositing with canvas */
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        willChange:     'backdrop-filter',
         minWidth:       '82px',
       }}
     >
@@ -134,13 +137,15 @@ function StatCard({
   )
 }
 
-/* ─── 3D Scene (right side) ──────────────────────────────────────────────── */
+/* ─── 3D Scene ───────────────────────────────────────────────────────────── */
 const ThreeScene = memo(function ThreeScene({
   theme, isMobile,
 }: { theme: 'dark' | 'light'; isMobile: boolean }) {
   return (
     <Canvas
-      dpr={[1, isMobile ? 1.2 : 1.8]}
+      /* ↓ DPR cap 1.8 → 1.5 (44% fewer pixels on Retina) + AdaptiveDpr will lower further if needed */
+      dpr={[1, isMobile ? 1.2 : 1.5]}
+      flat          /* skip tone-mapping pass — looks great, saves GPU time */
       gl={{
         antialias:       !isMobile,
         alpha:           true,
@@ -148,13 +153,23 @@ const ThreeScene = memo(function ThreeScene({
         powerPreference: isMobile ? 'low-power' : 'high-performance',
       }}
     >
-      <PerspectiveCamera makeDefault position={[0, 0, 7]} fov={52} />
-      <ambientLight intensity={theme === 'light' ? 1.4 : 0.55} />
-      <directionalLight position={[4, 6, 4]}  intensity={theme === 'light' ? 0.7 : 1.4} color="#ffffff" />
-      <directionalLight position={[-3, 2, -2]} intensity={0.5} color="#8866ff" />
-      <pointLight       position={[2, 3, 2]}   intensity={0.9} color="#4ecdc4" distance={9} />
-      <pointLight       position={[-2, -1, 2]} intensity={0.5} color="#ff6b6b" distance={7} />
-      <GeometricBackgroundScene theme={theme} isMobile={isMobile} />
+      {/* Automatically reduces DPR when FPS drops below threshold */}
+      <AdaptiveDpr pixelated />
+
+      {/* Wraps the scene so Three.js can react to GPU/CPU pressure */}
+      <PerformanceMonitor>
+        <PerspectiveCamera makeDefault position={[0, 0, 7]} fov={52} />
+        <ambientLight intensity={theme === 'light' ? 1.4 : 0.55} />
+        <directionalLight
+          position={[4, 6, 4]}
+          intensity={theme === 'light' ? 0.7 : 1.4}
+          color="#ffffff"
+        />
+        <directionalLight position={[-3, 2, -2]} intensity={0.5} color="#8866ff" />
+        {/* Reduced to 1 point light (was 2) — half the light draw calls */}
+        <pointLight position={[0, 2, 3]} intensity={0.85} color="#4ecdc4" distance={9} />
+        <GeometricBackgroundScene theme={theme} isMobile={isMobile} />
+      </PerformanceMonitor>
     </Canvas>
   )
 })
@@ -167,7 +182,6 @@ export default function Hero() {
   const [isMobile, setIsMobile] = useState(false)
   const [mounted,  setMounted]  = useState(false)
 
-  /* Animation refs */
   const badgeRef  = useRef<HTMLDivElement>(null)
   const nameRef   = useRef<HTMLDivElement>(null)
   const lineRef   = useRef<HTMLDivElement>(null)
@@ -209,14 +223,13 @@ export default function Hero() {
     if (el) gsap.to(window, { duration: 1.1, scrollTo: { y: el, offsetY: 72 }, ease: 'power3.inOut' })
   }, [])
 
-  /* Colours — bg now uses the same CSS variable as the Projects section */
-  const textPri    = dark ? '#ffffff' : '#0a0a14'
-  const textMuted  = dark ? 'rgba(255,255,255,0.42)' : 'rgba(0,0,0,0.42)'
-  const badgeBg    = dark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.70)'
-  const badgeBdr   = dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)'
-  const badgeText  = dark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.55)'
-  const btn2Bg     = dark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.60)'
-  const btn2Bdr    = dark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.14)'
+  const textPri   = dark ? '#ffffff' : '#0a0a14'
+  const textMuted = dark ? 'rgba(255,255,255,0.42)' : 'rgba(0,0,0,0.42)'
+  const badgeBg   = dark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.70)'
+  const badgeBdr  = dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)'
+  const badgeText = dark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.55)'
+  const btn2Bg    = dark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.60)'
+  const btn2Bdr   = dark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.14)'
 
   const PILLS = ['JAVA', 'SPRING BOOT', 'REACT', 'NEXT.JS', 'DOCKER', 'CLOUD']
   const STATS = [
@@ -237,17 +250,23 @@ export default function Hero() {
     >
       <style>{`@keyframes tw-blink{0%,100%{opacity:1}50%{opacity:0}}`}</style>
 
-      {/* ── 3D Canvas — full bleed right half on desktop, full on mobile ── */}
+      {/* ── 3D Canvas wrapper — isolated GPU layer so backdrop-filter
+           elements above don't trigger canvas re-compositing every frame ── */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ zIndex: 0 }}
+        style={{
+          zIndex:     0,
+          willChange: 'transform',
+          transform:  'translateZ(0)',
+          contain:    'layout paint',
+        }}
       >
         {mounted && (
           <ThreeScene theme={theme} isMobile={isMobile} />
         )}
       </div>
 
-      {/* ── Left fade vignette — keeps text readable over 3D ── */}
+      {/* ── Left fade vignette ── */}
       {!isMobile && (
         <div
           className="absolute inset-y-0 left-0 pointer-events-none"
@@ -258,7 +277,6 @@ export default function Hero() {
           }}
         />
       )}
-      {/* Top & bottom edge fades */}
       <div className="absolute inset-x-0 top-0 h-24 pointer-events-none" style={{ zIndex: 1, background: 'linear-gradient(to bottom, var(--bg-secondary), transparent)' }} />
       <div className="absolute inset-x-0 bottom-0 h-24 pointer-events-none" style={{ zIndex: 1, background: 'linear-gradient(to top, var(--bg-secondary), transparent)' }} />
 
@@ -266,18 +284,18 @@ export default function Hero() {
         className={`absolute inset-0 flex items-center ${isMobile ? 'justify-center' : 'justify-start'}`}
         style={{ zIndex: 10 }}
       >
-        <div
-          className={`w-full ${isMobile ? 'max-w-sm mx-auto px-5 text-left' : 'max-w-lg ml-[5vw] xl:ml-[8vw] px-4 text-left'}`}
-        >
+        <div className={`w-full ${isMobile ? 'max-w-sm mx-auto px-5 text-left' : 'max-w-lg ml-[5vw] xl:ml-[8vw] px-4 text-left'}`}>
 
           {/* Badge */}
           <div ref={badgeRef} className="mb-5">
             <span
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full"
               style={{
-                background:     badgeBg,
-                border:         `1px solid ${badgeBdr}`,
-                backdropFilter: 'blur(16px)',
+                background:         badgeBg,
+                border:             `1px solid ${badgeBdr}`,
+                backdropFilter:     'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                willChange:         'backdrop-filter',
               }}
             >
               <span className="relative flex h-2 w-2">
@@ -296,11 +314,10 @@ export default function Hero() {
             </span>
           </div>
 
-          {/* ── Stacked name — Ajay / Patil ── */}
+          {/* Name */}
           <div ref={nameRef} className="mb-3">
-            {/* "Ajay" — solid, very large */}
             <div style={{
-              fontSize:      isMobile ? 'clamp(4rem, 18vw, 5.5rem)' : 'clamp(4.5rem, 8.5vw, 7rem)',
+              fontSize:      isMobile ? 'clamp(4rem,18vw,5.5rem)' : 'clamp(4.5rem,8.5vw,7rem)',
               fontWeight:    900,
               lineHeight:    1.0,
               letterSpacing: '-0.025em',
@@ -309,10 +326,8 @@ export default function Hero() {
             }}>
               Ajay
             </div>
-
-            {/* "Patil" — gradient pink→purple→teal */}
             <div style={{
-              fontSize:      isMobile ? 'clamp(4rem, 18vw, 5.5rem)' : 'clamp(4.5rem, 8.5vw, 7rem)',
+              fontSize:      isMobile ? 'clamp(4rem,18vw,5.5rem)' : 'clamp(4.5rem,8.5vw,7rem)',
               fontWeight:    900,
               lineHeight:    1.0,
               letterSpacing: '-0.025em',
@@ -327,7 +342,7 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Gradient underline divider — matches image 2 */}
+          {/* Gradient line */}
           <div
             ref={lineRef}
             style={{
@@ -340,7 +355,7 @@ export default function Hero() {
             }}
           />
 
-          {/* Typewriter role */}
+          {/* Typewriter */}
           <div ref={roleRef} className="mb-4">
             <span style={{
               fontSize:      isMobile ? '0.88rem' : '1.05rem',
@@ -358,11 +373,8 @@ export default function Hero() {
             </span>
           </div>
 
-          {/* Tech pills — exactly as in image 2 */}
-          <div
-            ref={pillsRef}
-            className="flex flex-wrap gap-2 mb-7"
-          >
+          {/* Tech pills */}
+          <div ref={pillsRef} className="flex flex-wrap gap-2 mb-7">
             {PILLS.map(p => (
               <TechPill key={p} label={p} theme={theme} />
             ))}
@@ -402,7 +414,9 @@ export default function Hero() {
                 color:           textPri,
                 border:          `1.5px solid ${btn2Bdr}`,
                 backgroundColor: btn2Bg,
-                backdropFilter:  'blur(14px)',
+                backdropFilter:  'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                willChange:      'backdrop-filter',
               }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.96 }}
