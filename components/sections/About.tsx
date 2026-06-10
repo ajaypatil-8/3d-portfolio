@@ -123,12 +123,12 @@ export default function About() {
       {/* ambient blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
         <div
-          className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-[140px]"
-          style={{ backgroundColor: 'rgba(78,205,196,0.06)' }}
+          className="absolute top-0 left-1/4 pointer-events-none"
+          style={{ width: '600px', height: '600px', transform: 'translate(-15%,-15%)', background: 'radial-gradient(circle, rgba(78,205,196,0.10) 0%, transparent 65%)' }}
         />
         <div
-          className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full blur-[140px]"
-          style={{ backgroundColor: 'rgba(255,107,107,0.06)' }}
+          className="absolute bottom-0 right-1/4 pointer-events-none"
+          style={{ width: '600px', height: '600px', transform: 'translate(15%,15%)', background: 'radial-gradient(circle, rgba(255,107,107,0.10) 0%, transparent 65%)' }}
         />
       </div>
 

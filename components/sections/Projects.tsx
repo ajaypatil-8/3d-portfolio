@@ -329,12 +329,12 @@ export default function Projects() {
     >
       {/* ambient blobs */}
       <div
-        className="absolute top-20 left-0 w-80 h-80 rounded-full blur-[120px] pointer-events-none"
-        style={{ backgroundColor: 'rgba(78,205,196,0.05)' }}
+        className="absolute top-20 left-0 pointer-events-none"
+        style={{ width: '520px', height: '520px', transform: 'translate(-20%,-15%)', background: 'radial-gradient(circle, rgba(78,205,196,0.12) 0%, transparent 65%)' }}
       />
       <div
-        className="absolute bottom-20 right-0 w-96 h-96 rounded-full blur-[140px] pointer-events-none"
-        style={{ backgroundColor: 'rgba(255,107,107,0.05)' }}
+        className="absolute bottom-20 right-0 pointer-events-none"
+        style={{ width: '600px', height: '600px', transform: 'translate(20%,15%)', background: 'radial-gradient(circle, rgba(255,107,107,0.12) 0%, transparent 65%)' }}
       />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6">

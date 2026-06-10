@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { motion, useScroll, useSpring, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { gsap } from 'gsap'
 import { ScrollToPlugin } from 'gsap/dist/ScrollToPlugin'
 import Image from 'next/image'
@@ -10,8 +10,9 @@ import { useTheme } from '@/components/providers/ThemeProvider'
 
 gsap.registerPlugin(ScrollToPlugin)
 
-const PROFILE_IMG = '/images/Profile.jpeg'
-const RESUME_FILE = '/resume/Ajay_Patil_Resume.pdf'
+const PROFILE_IMG  = '/images/Profile.jpeg'
+const RESUME_FILE  = '/resume/Ajay_Patil_Resume.pdf'
+const SECTION_IDS  = ['hero', 'projects', 'skills', 'about', 'experience', 'contact']
 
 const navItems = [
   { name: 'Home',       href: '#hero'       },
@@ -30,57 +31,68 @@ export default function Navigation() {
   const [activeSection, setActiveSection] = useState('hero')
   const [hoveredItem,   setHoveredItem]   = useState<string | null>(null)
   const [lightboxOpen,  setLightboxOpen]  = useState(false)
-  /*
-    Elite addition: hide nav when scrolling DOWN on mobile to reclaim screen space.
-    Show it again when scrolling UP.
-  */
   const [navHidden,     setNavHidden]     = useState(false)
-  const lastScrollY     = useRef(0)
-  const scrolling       = useRef(false)
 
-  const { scrollYProgress } = useScroll()
-  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 30, restDelta: 0.001 })
+  /* ── Refs that never trigger re-renders ── */
+  const lastScrollY  = useRef(0)
+  const scrolling    = useRef(false)
+  const rafPending   = useRef(false)
+  const progressRef  = useRef<HTMLDivElement>(null)   // direct DOM → zero React overhead
+  const scrolledRef  = useRef(false)                  // guard redundant setScrolled calls
+  const isOpenRef    = useRef(false)                  // read isOpen inside effect without deps
 
-  /* ── Active section detection ── */
+  useEffect(() => { isOpenRef.current = isOpen }, [isOpen])
+
+  /* ── Single merged scroll handler — RAF-throttled ──────────────────────────
+     BEFORE: 2 listeners + useSpring solver firing on every scroll tick
+     AFTER : 1 listener, deferred to rAF, only setState when values CHANGE      */
   useEffect(() => {
-    const ids = navItems.map(item => item.href.replace('#', ''))
-
     const onScroll = () => {
-      if (scrolling.current) return
-      const scrollY = window.scrollY + window.innerHeight * 0.35
-      let current   = ids[0]
-      for (const id of ids) {
-        const el = document.getElementById(id)
-        if (el && el.offsetTop <= scrollY) current = id
-      }
-      setActiveSection(current)
+      if (rafPending.current) return
+      rafPending.current = true
+
+      requestAnimationFrame(() => {
+        rafPending.current = false
+        const y    = window.scrollY
+        const maxY = document.documentElement.scrollHeight - window.innerHeight
+
+        /* 1. Progress bar — direct style mutation, bypasses React entirely */
+        if (progressRef.current) {
+          progressRef.current.style.transform = `scaleX(${maxY > 0 ? y / maxY : 0})`
+        }
+
+        /* 2. Glass nav — only setState when value actually changes */
+        const nowScrolled = y > 60
+        if (nowScrolled !== scrolledRef.current) {
+          scrolledRef.current = nowScrolled
+          setScrolled(nowScrolled)
+        }
+
+        /* 3. Active section detection */
+        if (!scrolling.current) {
+          const pos     = y + window.innerHeight * 0.35
+          let   current = SECTION_IDS[0]
+          for (const id of SECTION_IDS) {
+            const el = document.getElementById(id)
+            if (el && el.offsetTop <= pos) current = id
+          }
+          setActiveSection(current)
+        }
+
+        /* 4. Hide nav on mobile scroll-down, show on scroll-up */
+        if (window.innerWidth < 768 && !isOpenRef.current) {
+          setNavHidden(y > lastScrollY.current && y > 120)
+        } else {
+          setNavHidden(false)
+        }
+        lastScrollY.current = y
+      })
     }
 
     window.addEventListener('scroll', onScroll, { passive: true })
     onScroll()
     return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  /* ── Scroll → glass / hide-on-mobile-scroll-down ── */
-  useEffect(() => {
-    const onScroll = () => {
-      const y = window.scrollY
-      setScrolled(y > 60)
-
-      /* hide on scroll-down (mobile only, only after 120 px) */
-      const isMobile = window.innerWidth < 768
-      if (isMobile && !isOpen) {
-        if (y > lastScrollY.current && y > 120) setNavHidden(true)
-        else setNavHidden(false)
-      } else {
-        setNavHidden(false)
-      }
-      lastScrollY.current = y
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [isOpen])
+  }, []) // empty — all mutable state accessed via refs
 
   /* ── Body scroll lock ── */
   useEffect(() => {
@@ -88,7 +100,7 @@ export default function Navigation() {
     return () => { document.body.style.overflow = '' }
   }, [isOpen, lightboxOpen])
 
-  /* ── Escape to close lightbox ── */
+  /* ── Escape key ── */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { setLightboxOpen(false); setIsOpen(false) }
@@ -118,40 +130,29 @@ export default function Navigation() {
 
   return (
     <>
-      {/* ── Scroll progress bar ── */}
-      <motion.div
-        className="fixed top-0 left-0 right-0 h-[2px] origin-left z-[200]"
-        style={{ scaleX, background: 'linear-gradient(90deg, #ff6b6b, #4ecdc4, #a855f7)' }}
+      {/* ── Scroll progress bar — plain div, direct style mutation via ref ── */}
+      <div
+        ref={progressRef}
+        className="fixed top-0 left-0 right-0 h-[2px] origin-left z-[200] pointer-events-none"
+        style={{
+          background: 'linear-gradient(90deg, #ff6b6b, #4ecdc4, #a855f7)',
+          transform:  'scaleX(0)',
+        }}
       />
 
-      {/* ── Main nav ──
-          On mobile: slides off the top when scrolling down, slides back on scroll up.
-          Reduced entrance delay from 2.2s → 1.0s so it appears alongside content.
-      */}
       <motion.nav
         className="fixed top-0 left-0 right-0 z-[100] transition-[background-color,border-color,backdrop-filter,box-shadow] duration-500"
         style={{
-          backgroundColor:    scrolled ? 'var(--nav-bg)' : 'transparent',
-          backdropFilter:     scrolled ? 'blur(20px)'    : 'none',
-          WebkitBackdropFilter: scrolled ? 'blur(20px)'  : 'none',
-          borderBottom:       scrolled ? '1px solid var(--footer-border)' : '1px solid transparent',
-          boxShadow:          scrolled ? '0 4px 24px rgba(0,0,0,0.12)'   : 'none',
+          backgroundColor:      scrolled ? 'var(--nav-bg)' : 'transparent',
+          backdropFilter:       scrolled ? 'blur(12px)'    : 'none',
+          WebkitBackdropFilter: scrolled ? 'blur(12px)'    : 'none',
+          borderBottom:         scrolled ? '1px solid var(--footer-border)' : '1px solid transparent',
+          boxShadow:            scrolled ? '0 4px 24px rgba(0,0,0,0.10)'   : 'none',
         }}
         initial={{ y: -80, opacity: 0 }}
-        animate={{
-          y:       navHidden ? -80 : 0,
-          opacity: navHidden ? 0   : 1,
-        }}
-        transition={
-          navHidden
-            ? { duration: 0.3, ease: 'easeIn' }
-            : { duration: 0.4, ease: 'easeOut' }
-        }
-        // First entrance — override with a one-time delay via CSS-level Framer initial
-        // We handle initial appearance separately below
+        animate={{ y: navHidden ? -80 : 0, opacity: navHidden ? 0 : 1 }}
+        transition={navHidden ? { duration: 0.3, ease: 'easeIn' } : { duration: 0.4, ease: 'easeOut' }}
       >
-
-        {/* ── Entrance wrapper (one-time slide-in) ── */}
         <motion.div
           initial={{ y: -80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -193,16 +194,10 @@ export default function Navigation() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
                 >
-                  <span
-                    className="text-sm sm:text-base font-heading font-bold leading-none"
-                    style={{ color: textColor }}
-                  >
+                  <span className="text-sm sm:text-base font-heading font-bold leading-none" style={{ color: textColor }}>
                     Ajay <span className="gradient-text">Patil</span>
                   </span>
-                  <span
-                    className="text-[9px] sm:text-[10px] font-mono tracking-wider"
-                    style={{ color: mutedColor }}
-                  >
+                  <span className="text-[9px] sm:text-[10px] font-mono tracking-wider" style={{ color: mutedColor }}>
                     Full Stack Dev
                   </span>
                 </motion.a>
@@ -225,53 +220,34 @@ export default function Navigation() {
                       onMouseEnter={() => setHoveredItem(item.name)}
                       onMouseLeave={() => setHoveredItem(null)}
                     >
-                      {/* Hover bg */}
                       <AnimatePresence>
                         {hoveredItem === item.name && !isActive && (
                           <motion.span
                             className="absolute inset-0 rounded-full"
                             style={{ backgroundColor: 'var(--bg-card-hover)' }}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             transition={{ duration: 0.15 }}
                           />
                         )}
                       </AnimatePresence>
-
-                      {/* Active bg */}
                       <AnimatePresence>
                         {isActive && (
                           <motion.span
                             key={`bg-${item.name}`}
                             className="absolute inset-0 rounded-full"
-                            style={{
-                              backgroundColor: 'var(--bg-card-hover)',
-                              border:          '1px solid var(--border)',
-                            }}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
+                            style={{ backgroundColor: 'var(--bg-card-hover)', border: '1px solid var(--border)' }}
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
                           />
                         )}
                       </AnimatePresence>
-
                       <span className="relative z-10">{item.name}</span>
-
-                      {/*
-                        Elite improvement: replace the tiny dot with a gradient
-                        underline bar that grows from the center.
-                      */}
                       <AnimatePresence>
                         {isActive && (
                           <motion.span
                             key={`bar-${item.name}`}
                             className="absolute bottom-0.5 left-1/2 h-[2px] rounded-full"
-                            style={{
-                              background: 'linear-gradient(90deg, #ff6b6b, #4ecdc4)',
-                              x: '-50%',
-                            }}
+                            style={{ background: 'linear-gradient(90deg, #ff6b6b, #4ecdc4)', x: '-50%' }}
                             initial={{ width: 0, opacity: 0 }}
                             animate={{ width: '60%', opacity: 1 }}
                             exit={{ width: 0, opacity: 0 }}
@@ -286,17 +262,11 @@ export default function Navigation() {
 
               {/* CTA + controls */}
               <div className="flex items-center gap-1.5 sm:gap-2">
-                {/* Resume (desktop) */}
                 <motion.a
                   href={RESUME_FILE}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target="_blank" rel="noopener noreferrer"
                   className="hidden md:flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-semibold cursor-hover"
-                  style={{
-                    color:           'var(--text-secondary)',
-                    backgroundColor: 'var(--bg-card)',
-                    border:          '1px solid var(--border-strong)',
-                  }}
+                  style={{ color: 'var(--text-secondary)', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-strong)' }}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 1.7 }}
@@ -310,11 +280,9 @@ export default function Navigation() {
                   Resume
                 </motion.a>
 
-                {/* Mail CTA (desktop) */}
                 <motion.a
                   href="https://mail.google.com/mail/?view=cm&fs=1&to=ajaypatil8eight@gmail.com&su=Project%20Inquiry&body=Hello%20Ajay,%20I%20visited%20your%20portfolio%20and%20want%20to%20connect."
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target="_blank" rel="noopener noreferrer"
                   className="hidden md:flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white cursor-hover overflow-hidden relative"
                   style={{ background: 'linear-gradient(135deg, #ff6b6b, #a855f7)' }}
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -334,14 +302,12 @@ export default function Navigation() {
                     className="relative text-white/80"
                     animate={{ x: [0, 3, 0] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    →
-                  </motion.span>
+                  >→</motion.span>
                 </motion.a>
 
                 <ThemeToggle />
 
-                {/* Hamburger (mobile) */}
+                {/* Hamburger */}
                 <motion.button
                   className="md:hidden relative w-9 h-9 sm:w-10 sm:h-10 flex flex-col items-center justify-center gap-[5px] cursor-hover rounded-xl"
                   style={{
@@ -354,24 +320,12 @@ export default function Navigation() {
                   aria-label="Toggle menu"
                   aria-expanded={isOpen}
                 >
-                  <motion.span
-                    className="block w-5 h-[1.5px] rounded-full origin-center"
-                    style={{ backgroundColor: textColor }}
-                    animate={isOpen ? { rotate: 45, y: 6.5 } : { rotate: 0, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                  <motion.span
-                    className="block w-5 h-[1.5px] rounded-full"
-                    style={{ backgroundColor: textColor }}
-                    animate={isOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
-                    transition={{ duration: 0.2 }}
-                  />
-                  <motion.span
-                    className="block w-5 h-[1.5px] rounded-full origin-center"
-                    style={{ backgroundColor: textColor }}
-                    animate={isOpen ? { rotate: -45, y: -6.5 } : { rotate: 0, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  />
+                  <motion.span className="block w-5 h-[1.5px] rounded-full origin-center" style={{ backgroundColor: textColor }}
+                    animate={isOpen ? { rotate: 45, y: 6.5 } : { rotate: 0, y: 0 }} transition={{ duration: 0.3 }} />
+                  <motion.span className="block w-5 h-[1.5px] rounded-full" style={{ backgroundColor: textColor }}
+                    animate={isOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }} transition={{ duration: 0.2 }} />
+                  <motion.span className="block w-5 h-[1.5px] rounded-full origin-center" style={{ backgroundColor: textColor }}
+                    animate={isOpen ? { rotate: -45, y: -6.5 } : { rotate: 0, y: 0 }} transition={{ duration: 0.3 }} />
                 </motion.button>
               </div>
             </div>
@@ -384,9 +338,7 @@ export default function Navigation() {
         {lightboxOpen && (
           <motion.div
             className="fixed inset-0 z-[300] flex items-center justify-center p-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             onClick={() => setLightboxOpen(false)}
           >
@@ -399,36 +351,19 @@ export default function Navigation() {
               transition={{ type: 'spring', stiffness: 280, damping: 24 }}
               onClick={e => e.stopPropagation()}
             >
-              <div
-                className="relative p-[3px] rounded-3xl"
-                style={{ background: 'linear-gradient(135deg, #ff6b6b, #4ecdc4, #a855f7)' }}
-              >
-                <div
-                  className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-[22px] overflow-hidden"
-                  style={{ backgroundColor: 'var(--bg-secondary)' }}
-                >
-                  <Image
-                    src={PROFILE_IMG}
-                    alt="Ajay Patil"
-                    fill
-                    className="object-cover object-top"
-                    sizes="(max-width: 640px) 256px, (max-width: 768px) 320px, 384px"
-                  />
+              <div className="relative p-[3px] rounded-3xl" style={{ background: 'linear-gradient(135deg, #ff6b6b, #4ecdc4, #a855f7)' }}>
+                <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-[22px] overflow-hidden" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                  <Image src={PROFILE_IMG} alt="Ajay Patil" fill className="object-cover object-top"
+                    sizes="(max-width: 640px) 256px, (max-width: 768px) 320px, 384px" />
                 </div>
               </div>
               <div className="text-center">
-                <p className="font-heading font-bold text-xl" style={{ color: 'var(--text-primary)' }}>
-                  Ajay Patil
-                </p>
-                <p className="text-xs font-mono mt-0.5" style={{ color: mutedColor }}>
-                  Full Stack Developer · Java Backend
-                </p>
+                <p className="font-heading font-bold text-xl" style={{ color: 'var(--text-primary)' }}>Ajay Patil</p>
+                <p className="text-xs font-mono mt-0.5" style={{ color: mutedColor }}>Full Stack Developer · Java Backend</p>
               </div>
-              <button
-                onClick={() => setLightboxOpen(false)}
+              <button onClick={() => setLightboxOpen(false)}
                 className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-mono"
-                style={{ color: mutedColor, border: '1px solid var(--border)' }}
-              >
+                style={{ color: mutedColor, border: '1px solid var(--border)' }}>
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -443,55 +378,35 @@ export default function Navigation() {
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm md:hidden"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
             />
-
-            {/* Drawer panel */}
             <motion.div
               className="fixed top-0 right-0 bottom-0 z-[95] w-[280px] md:hidden flex flex-col"
               style={{
                 backgroundColor: 'var(--bg-secondary)',
                 borderLeft:      '1px solid var(--border)',
-                /*
-                  Safe area padding for iOS notch / home indicator.
-                  env() falls back gracefully on non-iOS.
-                */
                 paddingBottom:   'max(2rem, env(safe-area-inset-bottom))',
               }}
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
+              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
               transition={{ type: 'spring', stiffness: 300, damping: 32 }}
             >
               {/* Drawer header */}
-              <div
-                className="flex items-center justify-between px-5 h-[64px] flex-shrink-0"
-                style={{ borderBottom: '1px solid var(--border)' }}
-              >
+              <div className="flex items-center justify-between px-5 h-[64px] flex-shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
                 <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => { setIsOpen(false); setLightboxOpen(true) }}
-                    className="relative w-8 h-8 rounded-full overflow-hidden"
-                    style={{ border: '1px solid var(--border-strong)' }}
-                  >
+                  <button onClick={() => { setIsOpen(false); setLightboxOpen(true) }}
+                    className="relative w-8 h-8 rounded-full overflow-hidden" style={{ border: '1px solid var(--border-strong)' }}>
                     <Image src={PROFILE_IMG} alt="Ajay Patil" fill className="object-cover object-top" sizes="32px" />
                   </button>
                   <span className="font-heading font-bold" style={{ color: textColor }}>
                     Ajay <span className="gradient-text">Patil</span>
                   </span>
                 </div>
-                <button
-                  onClick={() => setIsOpen(false)}
+                <button onClick={() => setIsOpen(false)}
                   className="w-8 h-8 flex items-center justify-center rounded-lg"
-                  style={{ color: mutedColor, border: '1px solid var(--border)' }}
-                  aria-label="Close menu"
-                >
+                  style={{ color: mutedColor, border: '1px solid var(--border)' }} aria-label="Close menu">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -503,58 +418,36 @@ export default function Navigation() {
                 {navItems.map((item, i) => {
                   const isActive = activeSection === item.href.replace('#', '')
                   return (
-                    <motion.a
-                      key={item.name}
-                      href={item.href}
+                    <motion.a key={item.name} href={item.href}
                       className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium cursor-hover"
                       style={{
                         color:           isActive ? textColor : mutedColor,
                         backgroundColor: isActive ? 'var(--bg-card-hover)' : 'transparent',
                         border:          `1px solid ${isActive ? 'var(--border)' : 'transparent'}`,
                       }}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
+                      initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05 }}
                       onClick={e => { e.preventDefault(); handleNavClick(item.href) }}
                     >
-                      {/* Active indicator bar */}
-                      <span
-                        className="w-1 h-4 rounded-full flex-shrink-0 transition-all"
-                        style={{
-                          background: isActive
-                            ? 'linear-gradient(to bottom, #ff6b6b, #4ecdc4)'
-                            : 'var(--border-strong)',
-                        }}
-                      />
+                      <span className="w-1 h-4 rounded-full flex-shrink-0 transition-all" style={{
+                        background: isActive ? 'linear-gradient(to bottom, #ff6b6b, #4ecdc4)' : 'var(--border-strong)',
+                      }} />
                       {item.name}
                       {isActive && (
-                        <span className="ml-auto text-[10px] font-mono" style={{ color: 'var(--accent)' }}>
-                          active
-                        </span>
+                        <span className="ml-auto text-[10px] font-mono" style={{ color: 'var(--accent)' }}>active</span>
                       )}
                     </motion.a>
                   )
                 })}
               </nav>
 
-              {/* Drawer footer CTAs */}
+              {/* Footer CTAs */}
               <div className="px-5 pb-2 space-y-3 flex-shrink-0">
-                <motion.a
-                  href={RESUME_FILE}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download
+                <motion.a href={RESUME_FILE} target="_blank" rel="noopener noreferrer" download
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm cursor-hover"
-                  style={{
-                    color:           'var(--text-secondary)',
-                    backgroundColor: 'var(--bg-card)',
-                    border:          '1px solid var(--border-strong)',
-                  }}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.32 }}
-                  whileTap={{ scale: 0.97 }}
-                >
+                  style={{ color: 'var(--text-secondary)', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-strong)' }}
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.32 }} whileTap={{ scale: 0.97 }}>
                   <svg className="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
@@ -562,15 +455,11 @@ export default function Navigation() {
                   Download Resume
                 </motion.a>
 
-                <motion.a
-                  href="mailto:ajaypatil8eight@gmail.com"
+                <motion.a href="mailto:ajaypatil8eight@gmail.com"
                   className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl text-white font-semibold text-sm cursor-hover"
                   style={{ background: 'linear-gradient(135deg, #ff6b6b, #a855f7)' }}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.38 }}
-                  whileTap={{ scale: 0.97 }}
-                >
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.38 }} whileTap={{ scale: 0.97 }}>
                   Mail Me →
                 </motion.a>
 
@@ -581,9 +470,7 @@ export default function Navigation() {
 
                 <div className="flex items-center justify-center gap-2 pb-1">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <span className="text-xs font-mono" style={{ color: mutedColor }}>
-                    Open to opportunities
-                  </span>
+                  <span className="text-xs font-mono" style={{ color: mutedColor }}>Open to opportunities</span>
                 </div>
               </div>
             </motion.div>

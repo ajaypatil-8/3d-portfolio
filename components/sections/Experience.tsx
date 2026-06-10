@@ -304,12 +304,12 @@ export default function Experience() {
       {/* ambient blobs */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
         <div
-          className="absolute top-1/4 left-0 w-72 h-72 rounded-full blur-[120px]"
-          style={{ backgroundColor: 'rgba(78,205,196,0.4)' }}
+          className="absolute top-1/4 left-0 pointer-events-none"
+          style={{ width: '480px', height: '480px', transform: 'translate(-20%,-15%)', background: 'radial-gradient(circle, rgba(78,205,196,0.6) 0%, transparent 65%)' }}
         />
         <div
-          className="absolute bottom-1/4 right-0 w-72 h-72 rounded-full blur-[120px]"
-          style={{ backgroundColor: 'rgba(96,165,250,0.4)' }}
+          className="absolute bottom-1/4 right-0 pointer-events-none"
+          style={{ width: '480px', height: '480px', transform: 'translate(20%,15%)', background: 'radial-gradient(circle, rgba(96,165,250,0.6) 0%, transparent 65%)' }}
         />
       </div>
 

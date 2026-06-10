@@ -114,12 +114,12 @@ export default function Skills() {
       {/* ambient blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div
-          className="absolute top-10 left-1/4 w-72 h-72 rounded-full blur-[120px]"
-          style={{ backgroundColor: 'rgba(255,107,107,0.05)' }}
+          className="absolute top-10 left-1/4 pointer-events-none"
+          style={{ width: '480px', height: '480px', transform: 'translate(-15%,-15%)', background: 'radial-gradient(circle, rgba(255,107,107,0.12) 0%, transparent 65%)' }}
         />
         <div
-          className="absolute bottom-10 right-1/4 w-72 h-72 rounded-full blur-[120px]"
-          style={{ backgroundColor: 'rgba(168,85,247,0.05)' }}
+          className="absolute bottom-10 right-1/4 pointer-events-none"
+          style={{ width: '480px', height: '480px', transform: 'translate(15%,15%)', background: 'radial-gradient(circle, rgba(168,85,247,0.12) 0%, transparent 65%)' }}
         />
       </div>
 

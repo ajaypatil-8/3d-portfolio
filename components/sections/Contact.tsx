@@ -242,10 +242,10 @@ export default function Contact() {
       style={{ background: 'linear-gradient(to bottom, var(--bg-primary), var(--bg-secondary))' }}
     >
       {/* ambient blobs */}
-      <div className="absolute top-20 left-10 w-72 h-72 rounded-full blur-[100px] pointer-events-none"
-        style={{ backgroundColor: 'rgba(78,205,196,0.06)' }} />
-      <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full blur-[120px] pointer-events-none"
-        style={{ backgroundColor: 'rgba(96,165,250,0.06)' }} />
+      <div className="absolute top-20 left-10 pointer-events-none"
+        style={{ width: '480px', height: '480px', transform: 'translate(-15%,-15%)', background: 'radial-gradient(circle, rgba(78,205,196,0.14) 0%, transparent 65%)' }} />
+      <div className="absolute bottom-20 right-10 pointer-events-none"
+        style={{ width: '560px', height: '560px', transform: 'translate(15%,15%)', background: 'radial-gradient(circle, rgba(96,165,250,0.14) 0%, transparent 65%)' }} />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6">
 

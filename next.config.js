@@ -1,24 +1,26 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Compress all responses
-  compress: true,
-  // Faster refresh and smaller bundles
-  swcMinify: true,
-  // Don't block rendering on image errors
+  compress:        true,
+  // swcMinify removed — SWC minification is default in Next.js 15+
+
   images: {
     unoptimized: false,
   },
-  webpack: (config, { isServer }) => {
-    // Ignore fs/path in client bundle (Three.js GLTFLoader needs this)
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        path: false,
-      }
-    }
-    return config
+
+  // Turbopack is default in Next.js 16 — explicit config silences the warning
+  // fs/path stubs for Three.js are handled automatically by Turbopack
+  turbopack: {},
+
+  // Tree-shake heavy packages — drops unused exports at build time
+  experimental: {
+    optimizePackageImports: [
+      'three',
+      '@react-three/fiber',
+      '@react-three/drei',
+      'framer-motion',
+      'gsap',
+    ],
   },
 }
 
