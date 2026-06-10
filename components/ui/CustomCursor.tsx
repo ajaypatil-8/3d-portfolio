@@ -36,7 +36,7 @@ export default function CustomCursor() {
   const ringPos  = useRef({ x: -200, y: -200 })
   const dotPos   = useRef({ x: -200, y: -200 })
   const clickPos = useRef({ x: 0,    y: 0    }) // captures position at click time
-  const animRef  = useRef<number>()
+  const animRef  = useRef<number | undefined>(undefined)
 
   useEffect(() => {
     setMounted(true)
