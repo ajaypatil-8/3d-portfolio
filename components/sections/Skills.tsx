@@ -105,6 +105,8 @@ function CategoryBar({
 /* ─── Skills ─────────────────────────────────────────────────────────── */
 
 export default function Skills() {
+  const dark = true
+
   return (
     <section
       id="skills"
@@ -194,7 +196,9 @@ export default function Skills() {
                 style={{
                   backgroundColor: cat.bg,
                   border:          `1px solid ${cat.border}`,
-                  backdropFilter:  'blur(12px)',
+                  boxShadow: dark
+                 ? '0 8px 32px rgba(0,0,0,0.40)'
+                 : '0 8px 32px rgba(0,0,0,0.12)',
                 }}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
