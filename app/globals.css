@@ -67,24 +67,44 @@ html {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   FIX #10 — SMOOTH THEME CROSSFADE
-   Apply a 300ms transition on every property that reads from a CSS variable.
-   This covers EVERY element automatically — cards, nav, borders, text — so
-   dark ↔ light is a uniform 300ms blend instead of a jarring flash.
-
-   Exclusions:
-   • canvas / video / img  — never transition (GPU layers, media)
-   • a / button             — restored below with their 200ms hover transitions
-   • @prefers-reduced-motion overrides everything at the bottom
+   THEME CROSSFADE
+   Strategy: use the View Transition API (VTA) when available — a GPU-composited
+   crossfade of the whole page, zero per-element paint work.
+   Fallback for older browsers: transition only key layout containers (not every
+   element), so the browser paints far fewer layers.
    ───────────────────────────────────────────────────────────────────────── */
-*, *::before, *::after {
-  transition-property:        background-color, border-color, color, fill, stroke, outline-color;
-  transition-duration:        300ms;
+
+/* ── VTA path (Chrome 111+, Safari 18+, Firefox 130+) ──
+   ThemeProvider adds .vta-theme-change while the transition runs.
+   Suppress all CSS transitions so they don't double-up with the VTA crossfade. */
+.vta-theme-change *,
+.vta-theme-change *::before,
+.vta-theme-change *::after {
+  transition: none !important;
+}
+
+/* VTA crossfade animation: old page fades out, new page fades in */
+::view-transition-old(root) {
+  animation: 180ms ease-out both vta-fade-out;
+}
+::view-transition-new(root) {
+  animation: 180ms ease-in  both vta-fade-in;
+}
+@keyframes vta-fade-out { to   { opacity: 0; } }
+@keyframes vta-fade-in  { from { opacity: 0; } }
+
+/* ── CSS-transition fallback (browsers without VTA) ──
+   Only transition high-level containers — drastically fewer paint layers
+   than the previous "every element" rule. */
+body, section, header, footer, nav,
+aside, main, article {
+  transition-property:        background-color, border-color, color;
+  transition-duration:        250ms;
   transition-timing-function: ease;
 }
 
-/* Excluded elements — transitions would hurt perf or look wrong */
-canvas, video, img, svg path, svg rect, svg circle,
+/* Excluded elements — never transition (GPU layers, media, or icons) */
+canvas, video, img, svg, svg *,
 .no-theme-transition, [class*="three-"] {
   transition: none !important;
 }
@@ -229,9 +249,7 @@ canvas {
   animation:       shimmer 1.6s infinite;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   FORM ELEMENTS
-   ───────────────────────────────────────────────────────────────────────── */
+
 a, button { -webkit-tap-highlight-color: transparent; }
 
 button, [role="button"], label {
@@ -244,9 +262,6 @@ input, textarea, select {
   appearance:         none;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   UTILITIES
-   ───────────────────────────────────────────────────────────────────────── */
 @layer utilities {
   .perspective-1000 { perspective:          1000px; }
   .preserve-3d      { transform-style:      preserve-3d; }
@@ -262,9 +277,6 @@ input, textarea, select {
 
 .skill-bar { will-change: width; }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   REDUCED MOTION — always last so it wins specificity
-   ───────────────────────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration:        0.01ms !important;

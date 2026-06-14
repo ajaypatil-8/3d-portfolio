@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, startTransition } from 'react'
 
 type Theme = 'light' | 'dark'
 
@@ -26,16 +26,33 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
   }, [])
 
   const toggleTheme = () => {
-    setTheme(prev => {
-      const next = prev === 'dark' ? 'light' : 'dark'
+    const next = theme === 'dark' ? 'light' : 'dark'
+
+    // Apply DOM + localStorage changes — called inside VTA callback or directly
+    const apply = () => {
       if (next === 'light') {
         document.documentElement.setAttribute('data-theme', 'light')
       } else {
         document.documentElement.removeAttribute('data-theme')
       }
       localStorage.setItem('theme', next)
-      return next
-    })
+      // Defer React re-render so it doesn't block the first paint
+      startTransition(() => setTheme(next))
+    }
+
+    // View Transition API: browser snapshots the page, runs apply() instantly,
+    // then GPU-crossfades old → new. Far cheaper than 300 ms per-element CSS transitions.
+    if (typeof document.startViewTransition === 'function') {
+      // Suppress the per-element CSS transitions while VTA owns the animation
+      document.documentElement.classList.add('vta-theme-change')
+      const vt = document.startViewTransition(apply)
+      vt.finished.finally(() => {
+        document.documentElement.classList.remove('vta-theme-change')
+      })
+    } else {
+      // Fallback: plain apply — CSS transitions in globals.css handle the blend
+      apply()
+    }
   }
 
   return (
