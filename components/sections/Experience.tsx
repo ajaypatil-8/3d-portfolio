@@ -101,6 +101,29 @@ const XP_CSS = `
 }
 .group:hover .xp-bottom-line { width: 100%; }
 
+/* ── Sparkle float (education hover) ──────── */
+@keyframes xp-sparkle {
+  0%   { transform: translate(0,0) scale(1);   opacity: 0.9; }
+  100% { transform: translate(var(--sx),var(--sy)) scale(0); opacity: 0; }
+}
+
+/* ── Progress bar fill ──────────────────────── */
+@keyframes xp-bar-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ── Live badge pulse ───────────────────────── */
+@keyframes xp-live-pulse {
+  0%,100% { transform: scale(1);    opacity: 1; }
+  50%     { transform: scale(1.06); opacity: 0.85; }
+}
+
+/* ── Connector dash travel ──────────────────── */
+@keyframes xp-dash-travel {
+  to { stroke-dashoffset: -24; }
+}
+
 /* ── Honour reduced-motion ──────────────────── */
 @media (prefers-reduced-motion: reduce) {
   [style*="animation"] { animation: none !important; }
@@ -141,7 +164,7 @@ const EDUCATION = [
 const JOURNEY = [
   {
     year: '2025 – Present',
-    icon: '⚙️',
+    icon: 'SB',
     color: '#ff6b6b',
     title: 'Spring Boot & Microservices',
     org: 'Self-Learning & Projects',
@@ -150,10 +173,12 @@ const JOURNEY = [
     tags: ['Spring Boot', 'Microservices', 'Docker', 'Kafka'],
     badge: 'Backend Core',
     isLive: false,
+    progress: 85,
+    url: null,
   },
   {
     year: '2024 – 25',
-    icon: '🏆',
+    icon: 'PHP',
     color: '#ffd93d',
     title: 'Full Stack Development with PHP',
     org: 'Self-Built Project',
@@ -162,10 +187,12 @@ const JOURNEY = [
     tags: ['PHP', 'MySQL', 'Cloudinary', 'SMTP'],
     badge: 'First Full Stack',
     isLive: false,
+    progress: 100,
+    url: null,
   },
   {
     year: '2024 – Present',
-    icon: '🎨',
+    icon: 'FE',
     color: '#4ecdc4',
     title: 'React & Next.js Frontend',
     org: 'Self-Learning',
@@ -174,10 +201,12 @@ const JOURNEY = [
     tags: ['React', 'Next.js', 'TypeScript', 'Tailwind'],
     badge: 'Frontend',
     isLive: false,
+    progress: 90,
+    url: null,
   },
   {
     year: '2026 – Present',
-    icon: '✈️',
+    icon: 'AS',
     color: '#6366f1',
     title: 'AeroSphere — Full Production Deployment',
     org: 'Live · aerosphere.work.gd',
@@ -186,10 +215,12 @@ const JOURNEY = [
     tags: ['AWS EC2', 'Docker', 'Nginx', "Let's Encrypt", 'GitHub Actions'],
     badge: '🔴 Live',
     isLive: true,
+    progress: 100,
+    url: 'https://aerosphere.work.gd',
   },
   {
     year: '2026 – Present',
-    icon: '🐳',
+    icon: 'DC',
     color: '#a855f7',
     title: 'Docker & Cloud Fundamentals',
     org: 'Self-Learning',
@@ -198,6 +229,8 @@ const JOURNEY = [
     tags: ['Docker', 'Kubernetes', 'AWS', 'Azure'],
     badge: 'DevOps Path',
     isLive: false,
+    progress: 70,
+    url: null,
   },
 ] as const
 
@@ -232,7 +265,24 @@ function use3DTilt(deg = 6) {
    §4  ATOMS
 ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Tag pill ────────────────────────────────────────────────────────── */
+/* ── Journey monogram badge (professional, no emoji) ── */
+function JourneyMonogram({ label, color, hov }: { label: string; color: string; hov: boolean }) {
+  return (
+    <div
+      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 relative"
+      style={{
+        background: `${color}14`,
+        border:     `1px solid ${color}28`,
+        transition: 'box-shadow 0.3s',
+        boxShadow:  hov ? `0 0 20px ${color}40` : 'none',
+      }}
+    >
+      <span className="font-mono font-bold text-[10px] tracking-tight" style={{ color }}>
+        {label}
+      </span>
+    </div>
+  )
+}
 function Tag({ label, color }: { label: string; color?: string }) {
   return (
     <motion.span
@@ -327,6 +377,59 @@ function AmbientOrbs() {
           }}
         />
       ))}
+    </div>
+  )
+}
+
+/* ── Sparkle burst on education card hover ──────────────────────────── */
+function SparkleBurst({ color, active }: { color: string; active: boolean }) {
+  if (!active) return null
+  const sparks = [
+    { sx: '12px', sy: '-18px', delay: 0 },
+    { sx: '-14px', sy: '-12px', delay: 0.08 },
+    { sx: '16px', sy: '8px', delay: 0.14 },
+    { sx: '-10px', sy: '14px', delay: 0.06 },
+  ]
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl" aria-hidden>
+      {sparks.map((s, i) => (
+        <div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            width: 4, height: 4, top: '40%', left: '8%',
+            backgroundColor: color,
+            ['--sx' as string]: s.sx,
+            ['--sy' as string]: s.sy,
+            animation: `xp-sparkle 0.7s ${s.delay}s ease-out forwards`,
+            willChange: 'transform',
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+/* ── Skill progress bar (journey cards) ─────────────────────────────── */
+function ProgressBar({ value, color, index }: { value: number; color: string; index: number }) {
+  return (
+    <div className="mt-3 mb-1">
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-[9px] font-mono uppercase tracking-wider" style={{ color: 'var(--text-faint)' }}>
+          Mastery
+        </span>
+        <span className="text-[9px] font-mono font-bold" style={{ color }}>{value}%</span>
+      </div>
+      <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+        <motion.div
+          className="h-full rounded-full origin-left"
+          style={{ background: `linear-gradient(90deg, ${color}, ${color}88)` }}
+          initial={{ scaleX: 0 }}
+          whileInView={{ scaleX: value / 100 }}
+          viewport={{ once: true }}
+          transition={{ delay: index * 0.09 + 0.4, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+        />
+      </div>
     </div>
   )
 }
@@ -444,6 +547,8 @@ function EducationCard({ item, index }: { item: EduItem; index: number }) {
           />
         )}
 
+        <SparkleBurst color={item.color} active={hov} />
+
         {/* Ambient radial */}
         <motion.div
           aria-hidden
@@ -520,18 +625,25 @@ function EducationCard({ item, index }: { item: EduItem; index: number }) {
               )}
 
               {item.meta && (
-                <div className="mb-2.5">
+                <motion.div
+                  className="mb-2.5"
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.13 + 0.35, type: 'spring' }}
+                >
                   <span
                     className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-mono"
                     style={{
                       backgroundColor: `${item.color}12`,
                       color:           item.color,
                       border:          `1px solid ${item.color}22`,
+                      animation:       hov ? 'xp-badge 1.8s ease-in-out infinite' : 'none',
                     }}
                   >
                     🏅 {item.meta}
                   </span>
-                </div>
+                </motion.div>
               )}
 
               <p className="text-xs leading-relaxed mb-3" style={{ color: 'var(--text-secondary)' }}>
@@ -622,6 +734,16 @@ function JourneyCard({
         whileHover={{ y: -6 }}
         transition={{ y: { duration: 0.2 } }}
       >
+        {/* Left accent bar — matches education card language */}
+        <motion.div
+          className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl"
+          style={{ background: `linear-gradient(to bottom, ${item.color}, ${item.color}44)` }}
+          initial={{ scaleY: 0, transformOrigin: 'top' }}
+          whileInView={{ scaleY: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: index * 0.09 + 0.15, duration: 0.5 }}
+        />
+
         {/* Directional top stripe */}
         <motion.div
           className="absolute top-0 inset-x-0 h-[2px]"
@@ -673,39 +795,13 @@ function JourneyCard({
         )}
 
         {/* ── Content ── */}
-        <div className="p-5 relative z-10">
+        <div className="p-5 pl-6 relative z-10">
 
           {/* Header row */}
           <div className={`flex items-start gap-2.5 mb-3 ${align === 'right' ? 'flex-row-reverse' : ''}`}>
 
             {/* Icon */}
-            <motion.div
-              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 relative overflow-visible"
-              style={{
-                background: `${item.color}16`,
-                border:     `1px solid ${item.color}28`,
-                fontSize:   '1.25rem',
-              }}
-              animate={hov
-                ? { boxShadow: `0 0 24px ${item.color}55` }
-                : { boxShadow: 'none' }}
-              transition={{ duration: 0.3 }}
-            >
-              <span style={hov ? { animation: 'xp-jiggle 0.5s ease forwards', display: 'block' } : {}}>
-                {item.icon}
-              </span>
-              {hov && (
-                <div
-                  aria-hidden
-                  className="absolute inset-0 rounded-xl pointer-events-none"
-                  style={{
-                    animation:    'xp-ring 0.9s ease-out forwards',
-                    border:       `1px solid ${item.color}`,
-                    borderRadius: '0.75rem',
-                  }}
-                />
-              )}
-            </motion.div>
+            <JourneyMonogram label={item.icon} color={item.color} hov={hov} />
 
             {/* Year + badge */}
             <div className={`flex flex-col gap-1 ${align === 'right' ? 'items-end' : ''}`}>
@@ -733,6 +829,7 @@ function JourneyCard({
                       : `${item.color}10`,
                     color:  item.isLive ? '#ef4444' : item.color,
                     border: `1px solid ${item.isLive ? 'rgba(239,68,68,0.28)' : item.color + '24'}`,
+                    animation: item.isLive ? 'xp-live-pulse 2s ease-in-out infinite' : 'none',
                   }}
                 >
                   {item.badge}
@@ -759,11 +856,39 @@ function JourneyCard({
 
           {/* Description */}
           <p
-            className={`text-xs leading-relaxed mb-3 ${align === 'right' ? 'text-right' : ''}`}
+            className={`text-xs leading-relaxed mb-2 ${align === 'right' ? 'text-right' : ''}`}
             style={{ color: 'var(--text-secondary)' }}
           >
             {item.description}
           </p>
+
+          {/* Mastery progress */}
+          <ProgressBar value={item.progress} color={item.color} index={index} />
+
+          {/* External link for live projects */}
+          {item.url && (
+            <div className={`mb-2 ${align === 'right' ? 'text-right' : ''}`}>
+              <motion.a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full"
+                style={{
+                  color: item.color,
+                  background: `${item.color}10`,
+                  border: `1px solid ${item.color}30`,
+                  textDecoration: 'none',
+                }}
+                whileHover={{ scale: 1.05, boxShadow: `0 0 16px ${item.color}35` }}
+              >
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: '#ef4444' }} />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ backgroundColor: '#ef4444' }} />
+                </span>
+                Visit Live Site ↗
+              </motion.a>
+            </div>
+          )}
 
           {/* Tags — staggered spring */}
           <div className={`flex flex-wrap gap-1.5 ${align === 'right' ? 'justify-end' : ''}`}>
@@ -813,12 +938,38 @@ function TimelineRow({ item, index }: { item: JourneyItem; index: number }) {
       transition={{ duration: 0.5, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
     >
       {/* Left column */}
-      <div className={isLeft ? 'md:pr-5' : 'hidden md:block'}>
+      <div className={`relative ${isLeft ? 'md:pr-5' : 'hidden md:block'}`}>
+        {/* Horizontal connector (left side) */}
+        {isLeft && (
+          <div
+            aria-hidden
+            className="hidden md:block absolute top-[30px] right-0 w-5 h-px"
+            style={{
+              background: `linear-gradient(90deg, transparent, ${item.color}66)`,
+            }}
+          />
+        )}
         {isLeft && <JourneyCard item={item} index={index} align="right" />}
       </div>
 
-      {/* Centre dot */}
-      <div className="hidden md:flex justify-center items-start pt-[22px] relative z-10">
+      {/* Centre dot + year chip */}
+      <div className="hidden md:flex flex-col justify-center items-center pt-[14px] relative z-10">
+        {/* Year micro-badge above dot */}
+        <motion.span
+          className="text-[8px] font-mono px-1.5 py-0.5 rounded-full mb-2 whitespace-nowrap"
+          style={{
+            color: item.color,
+            background: `${item.color}12`,
+            border: `1px solid ${item.color}28`,
+          }}
+          initial={{ opacity: 0, y: -6 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: index * 0.08 + 0.1 }}
+        >
+          {item.year.split('–')[0].trim()}
+        </motion.span>
+
         <div className="relative flex items-center justify-center">
           {/* Outer ring A */}
           <div
@@ -868,7 +1019,17 @@ function TimelineRow({ item, index }: { item: JourneyItem; index: number }) {
       </div>
 
       {/* Right column */}
-      <div className={!isLeft ? 'md:pl-5' : 'hidden md:block'}>
+      <div className={`relative ${!isLeft ? 'md:pl-5' : 'hidden md:block'}`}>
+        {/* Horizontal connector (right side) */}
+        {!isLeft && (
+          <div
+            aria-hidden
+            className="hidden md:block absolute top-[30px] left-0 w-5 h-px"
+            style={{
+              background: `linear-gradient(270deg, transparent, ${item.color}66)`,
+            }}
+          />
+        )}
         {!isLeft && <JourneyCard item={item} index={index} align="left" />}
       </div>
 

@@ -208,23 +208,46 @@ export default function GitHubContributions() {
     >
       {/* ── CSS for grid cells — replaces 364 motion.div entrance animations ── */}
       <style>{`
-        @keyframes _gh-fadein { from { opacity:0 } to { opacity:1 } }
+        @keyframes _gh-fadein { from { opacity:0; transform:scale(0.85) } to { opacity:1; transform:scale(1) } }
+        @keyframes _gh-pulse-ring { 0%{transform:scale(1);opacity:0.6} 100%{transform:scale(2.2);opacity:0} }
+        @keyframes _gh-border-flow { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+        @keyframes _gh-live { 0%,100%{opacity:1} 50%{opacity:0.45} }
         ._gh-cell {
-          animation: _gh-fadein 0.3s ease forwards;
+          animation: _gh-fadein 0.35s ease forwards;
           opacity: 0;
-          /* hover handled by CSS — no whileHover Framer instance needed */
-          transition: transform 0.1s ease;
+          transition: transform 0.12s ease, box-shadow 0.12s ease;
+          cursor: default;
         }
-        ._gh-cell:hover { transform: scale(1.6); z-index: 10; position: relative; }
+        ._gh-cell:hover {
+          transform: scale(1.55);
+          z-index: 10;
+          position: relative;
+          box-shadow: 0 0 8px currentColor;
+        }
         @keyframes _gh-spin { to { transform: rotate(360deg); } }
         ._gh-spinning { animation: _gh-spin 0.8s linear infinite; }
+        @keyframes _gh-pulse { 0%,100% { opacity:.35 } 50% { opacity:.75 } }
+        ._gh-sk { animation: _gh-pulse 1.5s ease-in-out infinite; background-color: var(--border); }
+        @media (prefers-reduced-motion: reduce) {
+          ._gh-cell, ._gh-sk, [style*="animation"] { animation: none !important; }
+        }
       `}</style>
 
       {/* Ambient glow */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
         <div
-          className="absolute top-0 right-1/4 pointer-events-none"
-          style={{ width: '600px', height: '600px', transform: 'translate(15%,-15%)', background: 'radial-gradient(circle, rgba(57,211,83,0.12) 0%, transparent 65%)' }}
+          className="absolute top-0 right-1/4"
+          style={{
+            width: 600, height: 600, transform: 'translate(15%,-15%)',
+            background: `radial-gradient(circle, ${accentGreen}14 0%, transparent 65%)`,
+          }}
+        />
+        <div
+          className="absolute bottom-0 left-1/4"
+          style={{
+            width: 480, height: 480, transform: 'translate(-20%,20%)',
+            background: 'radial-gradient(circle, rgba(78,205,196,0.06) 0%, transparent 65%)',
+          }}
         />
       </div>
 
@@ -232,56 +255,91 @@ export default function GitHubContributions() {
 
         {/* Header */}
         <motion.div
-          className="text-center mb-8"
+          className="text-center mb-10"
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
         >
-          <p className="text-sm font-mono tracking-widest uppercase mb-3" style={{ color: '#4ecdc4' }}>
-            GitHub Activity
-          </p>
+          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full"
+            style={{ background: `${accentGreen}10`, border: `1px solid ${accentGreen}28` }}>
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full rounded-full opacity-75"
+                style={{ backgroundColor: accentGreen, animation: '_gh-live 2s ease-in-out infinite' }} />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full" style={{ backgroundColor: accentGreen }} />
+            </span>
+            <p className="text-[10px] font-mono tracking-widest uppercase" style={{ color: accentGreen }}>
+              GitHub Activity
+            </p>
+          </div>
           <h2
-            className="font-heading font-bold mb-2"
-            style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', color: 'var(--text-primary)' }}
+            className="font-heading font-bold mb-3"
+            style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: 'var(--text-primary)' }}
           >
             Contribution{' '}
             <GradientText from={accentGreen} to={accentGreen2}>Graph</GradientText>
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-            Dec 2025 – Present · Live
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
+            Dec 2025 – Present · Synced from GitHub
             {lastUpdated && (
               <span style={{ color: 'var(--text-faint)', marginLeft: '0.5rem' }}>
                 · Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             )}
           </p>
+          <motion.div
+            className="mx-auto mt-4 h-px rounded-full"
+            style={{ background: `linear-gradient(90deg, transparent, ${accentGreen}, #4ecdc4, transparent)` }}
+            initial={{ width: 0 }} whileInView={{ width: 120 }} viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          />
         </motion.div>
 
         {/* Stat cards */}
         <motion.div
-          className="flex justify-center gap-6 sm:gap-10 mb-8"
+          className="grid grid-cols-3 gap-3 sm:gap-5 mb-8 max-w-lg mx-auto"
           initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }} transition={{ delay: 0.1 }}
         >
           {statCards.map((s, i) => (
             <motion.div
               key={i}
-              className="text-center px-4 py-3 rounded-xl"
-              style={{ backgroundColor: `${s.color}0d`, border: `1px solid ${s.color}22` }}
-              whileHover={{ y: -2, transition: { duration: 0.15 } }}
+              className="text-center px-3 py-4 rounded-2xl relative overflow-hidden"
+              style={{ backgroundColor: `${s.color}08`, border: `1px solid ${s.color}22` }}
+              whileHover={{ y: -3, borderColor: `${s.color}44` }}
+              transition={{ duration: 0.18 }}
             >
-              <div className="text-2xl font-bold font-mono tabular-nums" style={{ color: s.color }}>
+              <div
+                aria-hidden
+                className="absolute inset-0 pointer-events-none"
+                style={{ background: `radial-gradient(ellipse at 50% 100%, ${s.color}10, transparent 70%)` }}
+              />
+              <div className="text-2xl font-bold font-mono tabular-nums relative z-10" style={{ color: s.color }}>
                 {loading ? <span className="opacity-30">—</span> : <CountUp value={s.value} suffix={s.suffix} />}
               </div>
-              <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{s.label}</div>
+              <div className="text-[10px] mt-1 font-mono uppercase tracking-wider relative z-10" style={{ color: 'var(--text-muted)' }}>
+                {s.label}
+              </div>
             </motion.div>
           ))}
         </motion.div>
 
         {/* Contribution grid */}
         <motion.div
-          className="rounded-2xl p-5 sm:p-6 overflow-x-auto"
-          style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}
+          className="rounded-2xl p-5 sm:p-7 overflow-x-auto relative"
+          style={{
+            backgroundColor: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+          }}
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
         >
+          {/* Animated top border */}
+          <div
+            aria-hidden
+            className="absolute top-0 inset-x-0 h-[2px] rounded-t-2xl"
+            style={{
+              background: `linear-gradient(90deg, ${accentGreen}, #4ecdc4, ${accentGreen2}, ${accentGreen})`,
+              backgroundSize: '200% 100%',
+              animation: '_gh-border-flow 4s linear infinite',
+            }}
+          />
           {loading ? (
             <div className="flex flex-col items-center gap-4 py-4">
               <SkeletonGrid />
@@ -332,8 +390,9 @@ export default function GitHubContributions() {
                           key={di}
                           className="_gh-cell w-[11px] h-[11px] rounded-sm flex-shrink-0"
                           style={{
-                            backgroundColor:  COLORS[day.level],
-                            animationDelay:   `${wi * 4 + di * 2}ms`,
+                            backgroundColor: COLORS[day.level],
+                            color:           COLORS[Math.min(day.level + 1, 4)],
+                            animationDelay:  `${wi * 4 + di * 2}ms`,
                           }}
                           title={`${day.count} contribution${day.count !== 1 ? 's' : ''} on ${day.date}`}
                         />
@@ -360,13 +419,18 @@ export default function GitHubContributions() {
           )}
 
           {/* Action row */}
-          <div className="text-center mt-5 flex items-center justify-center gap-3 flex-wrap">
+          <div className="text-center mt-6 pt-5 flex items-center justify-center gap-3 flex-wrap"
+            style={{ borderTop: '1px solid var(--border)' }}>
             <motion.a
               href={`https://github.com/${USERNAME}`}
               target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold"
-              style={{ border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', backgroundColor: 'var(--bg-card)' }}
-              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold relative overflow-hidden"
+              style={{
+                border: '1px solid var(--border-strong)',
+                color: 'var(--text-primary)',
+                backgroundColor: 'var(--bg-card-hover)',
+              }}
+              whileHover={{ scale: 1.04, y: -1 }} whileTap={{ scale: 0.97 }}
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
